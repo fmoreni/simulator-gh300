@@ -1,0 +1,14 @@
+{
+  "name": "gh300-sala-de-prova",
+  "version": "1.0.0",
+  "description": "Simulador independente de provas para o exame GH-300 (GitHub Copilot)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test tests/",
+    "serve": "python3 -m http.server 8765 --directory dist",
+    "e2e": "node tests/e2e.mjs"
+  },
+  "license": "MIT"
+}
