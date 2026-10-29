@@ -2,9 +2,11 @@
 export const CORE = [
   'src/core/registry.js',
   'src/core/model.js',
+  'src/core/i18n.js',
   'src/core/scoring.js',
   'src/core/session.js',
   'src/core/storage.js',
+  'src/core/progress.js',
 ];
 
 export const BANKS = [
@@ -22,11 +24,25 @@ export const BANKS = [
   'src/banks/s11.js',        // Simulado 11 — Intermediário
   'src/banks/s12.js',        // Simulado 12 — Avançado
   'src/banks/extensions.js',
+  // Versão em inglês das questões (mesmos ids e gabaritos; só os textos mudam).
+  'src/banks/en/practice-a.js',
+  'src/banks/en/practice-b.js',
+  'src/banks/en/s03.js',
+  'src/banks/en/full-a.js',
+  'src/banks/en/full-b.js',
+  'src/banks/en/s06.js',
+  'src/banks/en/s07.js',
+  'src/banks/en/s08.js',
+  'src/banks/en/s09.js',
+  'src/banks/en/s10.js',
+  'src/banks/en/s11.js',
+  'src/banks/en/s12.js',
 ];
 
 export const UI = [
   'src/ui/dnd.js',
   'src/ui/renderers.js',
+  'src/ui/dashboard.js',
   'src/ui/app.js',
 ];
 

@@ -3,7 +3,7 @@
 var GHX = globalThis.GHX || (globalThis.GHX = {});
 
 (function () {
-  var esc = GHX.esc;
+  var esc = GHX.esc, t = function (k, v) { return GHX.t(k, v); };
   var R = {};
 
   // Marcação mínima no texto: `código`, **negrito** e quebras de linha.
@@ -28,7 +28,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function range(n) { var a = []; for (var i = 0; i < n; i++) a.push(i); return a; }
   function idsOf(list) { return list.map(function (x) { return x.id; }); }
   function mark(ok) {
-    return ok ? '<span class="mk ok" aria-label="Correto">✓</span>' : '<span class="mk bad" aria-label="Incorreto">✗</span>';
+    return ok ? '<span class="mk ok" aria-label="' + t('correct') + '">✓</span>' : '<span class="mk bad" aria-label="' + t('incorrect') + '">✗</span>';
   }
 
   // Itens que usam a área de resposta separada por divisor (arrastar e código).
@@ -38,15 +38,15 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   R.instruction = function (it) {
     switch (it.type) {
-      case 'single': return 'Selecione 1 resposta entre ' + it.o.length + ' alternativas.';
-      case 'multi': return 'Selecione ' + it.n + ' respostas entre ' + it.o.length + ' alternativas. Cada resposta correta vale um ponto.';
-      case 'match': return 'Arraste cada item para o alvo correto' + (it.reuse ? '. Cada item pode ser usado uma vez, mais de uma vez ou nenhuma vez.' : '. Cada item pode ser usado no máximo uma vez.') + ' Pelo teclado: Enter para pegar, setas para escolher o alvo, Enter para soltar.';
-      case 'inline': return 'Arraste os valores para as lacunas' + (it.reuse ? ' (cada valor pode ser usado mais de uma vez).' : ' (cada valor pode ser usado no máximo uma vez).') + ' Pelo teclado: Enter para pegar, setas para escolher a lacuna, Enter para soltar.';
-      case 'dropdown': return 'Selecione a opção correta em cada lista da área de resposta.';
-      case 'order': return 'Mova as ações para a área de resposta e coloque-as na sequência correta, de cima para baixo.' + (it.extra && it.extra.length ? ' Nem todas as ações serão usadas.' : '');
-      case 'yesno': return 'Para cada afirmação, selecione ' + it.labels[0] + ' ou ' + it.labels[1] + '. NOTE: Each correct selection is worth one point.';
-      case 'ps': return 'Esta questão faz parte de uma série com o mesmo cenário. Depois de responder, você não poderá voltar a ela.';
-      case 'hotspot': return 'Selecione ' + it.n + ' área' + (it.n > 1 ? 's' : '') + ' na imagem.';
+      case 'single': return t('instr.single', { n: it.o.length });
+      case 'multi': return t('instr.multi', { n: it.n, m: it.o.length });
+      case 'match': return t('instr.match') + t(it.reuse ? 'instr.match.reuse' : 'instr.match.once') + t('instr.match.kbd');
+      case 'inline': return t('instr.inline') + t(it.reuse ? 'instr.inline.reuse' : 'instr.inline.once') + t('instr.inline.kbd');
+      case 'dropdown': return t('instr.dropdown');
+      case 'order': return t('instr.order') + (it.extra && it.extra.length ? t('instr.order.extra') : '');
+      case 'yesno': return t('instr.yesno', { a: it.labels[0], b: it.labels[1] });
+      case 'ps': return t('instr.ps');
+      case 'hotspot': return t('instr.hotspot', { n: it.n });
     }
     return '';
   };
@@ -60,7 +60,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   T.single = function (it, c) {
     var ord = order(it, c.shuffle, 'o', range(it.o.length));
-    return '<div class="opts" role="radiogroup" aria-label="Alternativas">' + ord.map(function (i, pos) {
+    return '<div class="opts" role="radiogroup" aria-label="' + t('options') + '">' + ord.map(function (i, pos) {
       var on = c.resp === i, fb = '';
       if (c.checked) fb = i === it.a ? mark(true) : (on ? mark(false) : '');
       return '<label class="opt' + attr(on, 'sel') + (c.checked && i === it.a ? ' right' : '') + '" data-k="o' + i + '">' +
@@ -73,7 +73,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var ord = order(it, c.shuffle, 'o', range(it.o.length));
     var sel = Array.isArray(c.resp) ? c.resp : [];
     var full = sel.length >= it.n;
-    return '<div class="opts" role="group" aria-label="Alternativas">' + ord.map(function (i, pos) {
+    return '<div class="opts" role="group" aria-label="' + t('options') + '">' + ord.map(function (i, pos) {
       var on = sel.indexOf(i) >= 0, fb = '';
       if (c.checked) fb = it.a.indexOf(i) >= 0 ? mark(true) : (on ? mark(false) : '');
       return '<label class="opt' + attr(on, 'sel') + (c.checked && it.a.indexOf(i) >= 0 ? ' right' : '') + '" data-k="o' + i + '">' +
@@ -85,7 +85,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function tile(id, text, extra) {
     return '<button type="button" class="tile" data-tile="' + esc(id) + '" data-k="tile-' + esc(id) + (extra && extra.from ? '-in-' + esc(extra.from) : '') + '"' +
       (extra && extra.from ? ' data-from="' + esc(extra.from) + '"' : '') +
-      attr(extra && extra.locked, 'disabled') + ' aria-label="' + esc(text) + (extra && extra.from ? ' (colocado; Delete remove)' : '') + '">' + R.inline(text) + '</button>';
+      attr(extra && extra.locked, 'disabled') + ' aria-label="' + esc(text) + (extra && extra.from ? t('placed') : '') + '">' + R.inline(text) + '</button>';
   }
 
   function sourceTiles(list, ordIds, used, c, reuse, title) {
@@ -100,14 +100,14 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var r = c.resp || {};
     var used = Object.keys(r).map(function (k) { return r[k]; });
     var ord = order(it, c.shuffle, 'tiles', idsOf(it.tiles));
-    var rows = it.targets.map(function (t) {
-      var v = r[t.id], fb = '';
-      if (c.checked) fb = mark(v === it.a[t.id]);
-      return '<div class="mrow"><div class="mtarget">' + R.inline(t.label) + '</div>' +
-        '<div class="zone' + attr(!v, 'empty') + '" data-zone="' + esc(t.id) + '" data-k="zone-' + esc(t.id) + '" tabindex="' + (c.locked ? -1 : 0) + '" role="button" aria-label="Alvo: ' + esc(t.label) + (v ? ' — ' + esc(label(it.tiles, v)) : ' — vazio') + '">' +
-        (v ? tile(v, label(it.tiles, v), { from: t.id, locked: c.locked }) : '') + '</div>' + fb + '</div>';
+    var rows = it.targets.map(function (tg) {
+      var v = r[tg.id], fb = '';
+      if (c.checked) fb = mark(v === it.a[tg.id]);
+      return '<div class="mrow"><div class="mtarget">' + R.inline(tg.label) + '</div>' +
+        '<div class="zone' + attr(!v, 'empty') + '" data-zone="' + esc(tg.id) + '" data-k="zone-' + esc(tg.id) + '" tabindex="' + (c.locked ? -1 : 0) + '" role="button" aria-label="' + t('target') + ': ' + esc(tg.label) + ' — ' + (v ? esc(label(it.tiles, v)) : t('empty')) + '">' +
+        (v ? tile(v, label(it.tiles, v), { from: tg.id, locked: c.locked }) : '') + '</div>' + fb + '</div>';
     }).join('');
-    return '<div class="dnd match">' + sourceTiles(it.tiles, ord, used, c, it.reuse, it.tilesTitle || 'Itens') +
+    return '<div class="dnd match">' + sourceTiles(it.tiles, ord, used, c, it.reuse, it.tilesTitle || t('tiles')) +
       '<div class="answer-area"><div class="pool-h">Answer Area</div>' + (it.targetsTitle ? '<div class="mhead"><span>' + esc(it.targetsTitle) + '</span><span></span></div>' : '') + rows + '</div></div>';
   };
 
@@ -117,10 +117,10 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var ord = order(it, c.shuffle, 'tokens', idsOf(it.tokens));
     var html = esc(it.code).replace(/\[\[([A-Za-z0-9_-]+)\]\]/g, function (_, g) {
       var v = r[g], fb = c.checked ? mark(v === it.a[g]) : '';
-      return '<span class="gap zone' + attr(!v, 'empty') + '" data-zone="' + g + '" data-k="zone-' + g + '" tabindex="' + (c.locked ? -1 : 0) + '" role="button" aria-label="Lacuna ' + g + (v ? ': ' + esc(label(it.tokens, v)) : ' vazia') + '">' +
+      return '<span class="gap zone' + attr(!v, 'empty') + '" data-zone="' + g + '" data-k="zone-' + g + '" tabindex="' + (c.locked ? -1 : 0) + '" role="button" aria-label="' + t('gap') + ' ' + g + (v ? ': ' + esc(label(it.tokens, v)) : ' ' + t('gap.empty')) + '">' +
         (v ? tile(v, label(it.tokens, v), { from: g, locked: c.locked }) : '&nbsp;') + '</span>' + fb;
     });
-    return '<div class="dnd inline">' + sourceTiles(it.tokens, ord, used, c, it.reuse, it.tokensTitle || 'Valores') +
+    return '<div class="dnd inline">' + sourceTiles(it.tokens, ord, used, c, it.reuse, it.tokensTitle || t('tokens')) +
       '<div class="answer-area"><div class="pool-h">Answer Area</div><pre class="code' + (it.lang ? ' lang-' + esc(it.lang) : '') + '">' + html + '</pre></div></div>';
   };
 
@@ -129,7 +129,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var src = it.code || it.text;
     var html = esc(src).replace(/\[\[([A-Za-z0-9_-]+)\]\]/g, function (_, k) {
       var opts = it.lists[k], v = r[k], fb = c.checked ? mark(v === it.a[k]) : '';
-      return '<select class="dd" data-act="dd" data-list="' + k + '" data-k="dd-' + k + '" aria-label="Lista ' + k + '"' + attr(c.locked, 'disabled') + '>' +
+      return '<select class="dd" data-act="dd" data-list="' + k + '" data-k="dd-' + k + '" aria-label="' + t('list') + ' ' + k + '"' + attr(c.locked, 'disabled') + '>' +
         '<option value=""' + attr(v == null, 'selected') + '>▾</option>' +
         opts.map(function (o, i) { return '<option value="' + i + '"' + attr(v === i, 'selected') + '>' + esc(o) + '</option>'; }).join('') +
         '</select>' + fb;
@@ -147,21 +147,21 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       return '<li class="oslot" data-zone="pos:' + i + '" data-k="pos-' + i + '">' +
         '<span class="onum">' + (i + 1) + '</span>' + tile(id, label(it.o, id), { from: 'pos:' + i, locked: c.locked }) +
         '<span class="omove">' +
-        '<button type="button" class="mini" data-act="order-move" data-ref="' + esc(id) + '" data-delta="-1" aria-label="Mover para cima"' + attr(c.locked || i === 0, 'disabled') + '>▲</button>' +
-        '<button type="button" class="mini" data-act="order-move" data-ref="' + esc(id) + '" data-delta="1" aria-label="Mover para baixo"' + attr(c.locked || i === r.length - 1, 'disabled') + '>▼</button>' +
-        '<button type="button" class="mini" data-act="order-remove" data-ref="' + esc(id) + '" aria-label="Remover"' + attr(c.locked, 'disabled') + '>✕</button>' +
+        '<button type="button" class="mini" data-act="order-move" data-ref="' + esc(id) + '" data-delta="-1" aria-label="' + t('move.up') + '"' + attr(c.locked || i === 0, 'disabled') + '>▲</button>' +
+        '<button type="button" class="mini" data-act="order-move" data-ref="' + esc(id) + '" data-delta="1" aria-label="' + t('move.down') + '"' + attr(c.locked || i === r.length - 1, 'disabled') + '>▼</button>' +
+        '<button type="button" class="mini" data-act="order-remove" data-ref="' + esc(id) + '" aria-label="' + t('remove') + '"' + attr(c.locked, 'disabled') + '>✕</button>' +
         '</span>' + fb + '</li>';
     }).join('');
     return '<div class="dnd order">' +
       '<div class="pool" data-zone="__pool" data-k="pool"><div class="pool-h">Actions</div>' +
       (pool.length ? pool.map(function (id) { return tile(id, label(it.o, id), { locked: c.locked }); }).join('') : '<span class="muted">—</span>') + '</div>' +
       '<div class="answer-area"><div class="pool-h">Answer Area</div><ol class="olist">' + list + '</ol>' +
-      '<div class="zone empty oend" data-zone="pos:' + r.length + '" data-k="pos-end" tabindex="' + (c.locked ? -1 : 0) + '" role="button" aria-label="Adicionar ao fim da sequência">Solte aqui</div></div></div>';
+      '<div class="zone empty oend" data-zone="pos:' + r.length + '" data-k="pos-end" tabindex="' + (c.locked ? -1 : 0) + '" role="button" aria-label="' + t('order.end') + '">' + t('drop.here') + '</div></div></div>';
   };
 
   T.yesno = function (it, c) {
     var r = c.resp || {};
-    return '<table class="yn"><thead><tr><th>Afirmação</th><th>' + esc(it.labels[0]) + '</th><th>' + esc(it.labels[1]) + '</th>' + (c.checked ? '<th></th>' : '') + '</tr></thead><tbody>' +
+    return '<table class="yn"><thead><tr><th>' + t('statement') + '</th><th>' + esc(it.labels[0]) + '</th><th>' + esc(it.labels[1]) + '</th>' + (c.checked ? '<th></th>' : '') + '</tr></thead><tbody>' +
       it.rows.map(function (row) {
         var v = r[row.id];
         var cell = function (val, i) {
@@ -177,9 +177,9 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       var fb = c.checked ? (val === it.a ? mark(true) : (v === val ? mark(false) : '')) : '';
       return '<label class="opt' + attr(v === val, 'sel') + '" data-k="ps' + i + '"><input type="radio" name="ps-' + esc(it.id) + '" data-act="ps" data-val="' + val + '"' + attr(v === val, 'checked') + attr(c.locked, 'disabled') + '><span>' + txt + '</span>' + fb + '</label>';
     };
-    return '<div class="ps-sol"><strong>Solução:</strong> ' + R.inline(it.sol) + '</div>' +
-      '<p class="ps-ask">Essa solução atende ao objetivo?</p>' +
-      '<div class="opts" role="radiogroup">' + opt(true, 'Sim', 0) + opt(false, 'Não', 1) + '</div>';
+    return '<div class="ps-sol"><strong>' + t('solution') + '</strong> ' + R.inline(it.sol) + '</div>' +
+      '<p class="ps-ask">' + t('ps.ask') + '</p>' +
+      '<div class="opts" role="radiogroup">' + opt(true, t('yes'), 0) + opt(false, t('no'), 1) + '</div>';
   };
 
   T.hotspot = function (it, c) {
@@ -192,8 +192,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       return '<rect class="' + cls + '" data-act="hot" data-region="' + esc(g.id) + '" data-k="hs-' + esc(g.id) + '" x="' + g.x + '" y="' + g.y + '" width="' + g.w + '" height="' + g.h + '" rx="3" tabindex="' + (c.locked || (full && !on) ? -1 : 0) + '" role="checkbox" aria-checked="' + on + '" aria-label="' + esc(g.label) + '"></rect>';
     }).join('');
     return '<div class="answer-area hotspot"><div class="pool-h">Answer Area</div>' +
-      '<svg class="hs-svg" viewBox="' + esc(it.viewBox) + '" role="group" aria-label="Imagem com áreas selecionáveis" xmlns="http://www.w3.org/2000/svg">' + it.svg + regions + '</svg>' +
-      '<div class="muted small">' + sel.length + ' de ' + it.n + ' selecionada(s)</div></div>';
+      '<svg class="hs-svg" viewBox="' + esc(it.viewBox) + '" role="group" aria-label="' + t('hs.img') + '" xmlns="http://www.w3.org/2000/svg">' + it.svg + regions + '</svg>' +
+      '<div class="muted small">' + t('hs.count', { a: sel.length, b: it.n }) + '</div></div>';
   };
 
   R.types = T;
@@ -207,7 +207,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   // ctx: { resp, shuffle, checked, locked }
   R.item = function (it, ctx) {
     ctx = ctx || {};
-    var body = T[it.type] ? T[it.type](it, ctx) : '<p>Tipo não suportado: ' + esc(it.type) + '</p>';
+    var body = T[it.type] ? T[it.type](it, ctx) : '<p>' + t('unsupported') + esc(it.type) + '</p>';
     var stem = '<div class="stem">' + R.md(it.q) + (it.ex ? '<pre class="code">' + esc(it.ex) + '</pre>' : '') + '</div>';
     var instr = '<p class="instr">' + esc(R.instruction(it)) + '</p>';
     var divider = R.usesDivider(it) ? '<hr class="divider" aria-hidden="true">' : '';
@@ -299,15 +299,15 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   // ---------- textos de resposta, gabarito e feedback ----------
 
   R.describe = function (it, r) {
-    var none = '<span class="muted">(sem resposta)</span>';
+    var none = '<span class="muted">' + t('no.answer') + '</span>';
     if (r == null) return none;
     var li = function (xs) { return xs.length ? '<ul class="ans">' + xs.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' : none; };
     switch (it.type) {
       case 'single': return it.o[r] != null ? R.inline(it.o[r]) : none;
-      case 'ps': return r ? 'Sim' : 'Não';
+      case 'ps': return r ? t('yes') : t('no');
       case 'multi': return li(r.map(function (i) { return R.inline(it.o[i]); }));
       case 'hotspot': return li(r.map(function (id) { return esc(label(it.regions, id)); }));
-      case 'match': return li(it.targets.filter(function (t) { return r[t.id]; }).map(function (t) { return R.inline(t.label) + ' → ' + R.inline(label(it.tiles, r[t.id])); }));
+      case 'match': return li(it.targets.filter(function (tg) { return r[tg.id]; }).map(function (tg) { return R.inline(tg.label) + ' → ' + R.inline(label(it.tiles, r[tg.id])); }));
       case 'inline': return li(GHX.slots(it.code).filter(function (g) { return r[g]; }).map(function (g) { return '<code>' + esc(g) + '</code>: ' + R.inline(label(it.tokens, r[g])); }));
       case 'dropdown': return li(GHX.slots(it.code || it.text).filter(function (k) { return r[k] != null; }).map(function (k) { return '<code>' + esc(k) + '</code>: ' + esc(it.lists[k][r[k]]); }));
       case 'order': return r.length ? '<ol class="ans">' + r.map(function (id) { return '<li>' + R.inline(label(it.o, id)) + '</li>'; }).join('') + '</ol>' : none;
@@ -346,14 +346,14 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   R.feedback = function (it, resp) {
     var sc = GHX.Scoring.score(it, resp);
     var cls = sc === 1 ? 'ok' : sc > 0 ? 'part' : 'bad';
-    var txt = sc === 1 ? 'Correto' : sc > 0 ? 'Parcialmente correto (' + Math.round(sc * 100) + '%)' : 'Incorreto';
+    var txt = sc === 1 ? t('correct') : sc > 0 ? t('partial', { pct: Math.round(sc * 100) }) : t('incorrect');
     return '<section class="feedback ' + cls + '" aria-live="polite">' +
       '<h3>' + txt + '</h3>' +
-      '<div class="fb-grid"><div><h4>Sua resposta</h4>' + R.describe(it, resp) + '</div>' +
-      '<div><h4>Resposta correta</h4>' + R.describe(it, it.a) + '</div></div>' +
-      '<h4>Explicação</h4>' + R.md(it.exp) +
+      '<div class="fb-grid"><div><h4>' + t('fb.yours') + '</h4>' + R.describe(it, resp) + '</div>' +
+      '<div><h4>' + t('fb.right') + '</h4>' + R.describe(it, it.a) + '</div></div>' +
+      '<h4>' + t('fb.exp') + '</h4>' + R.md(it.exp) +
       R.whyList(it) +
-      '<h4>Documentação oficial</h4>' + R.refs(it) + '</section>';
+      '<h4>' + t('fb.docs') + '</h4>' + R.refs(it) + '</section>';
   };
 
   // ---------- estudo de caso ----------

@@ -228,3 +228,21 @@ test('padrão do sandbox: alternativas com letras, instrução com quantidade e 
   assert.match(render('fx-order', null), /<div class="pool-h">Actions<\/div>/);
   assert.match(render('fx-dd', null), /<div class="pool-h">Answer Area<\/div>/);
 });
+
+test('renderers em inglês: instruções, rótulos e feedback seguem GHX.lang', () => {
+  GHX.setLang('en');
+  try {
+    assert.equal(R.instruction(item('fx-multi')), 'Select 2 answers from 4 options. Each correct answer is worth one point.');
+    const html = R.item(item('fx-order'), { resp: ['s1'] });
+    assert.match(html, /Drop here/);
+    assert.match(html, /aria-label="Move up"/);
+    const fb = R.feedback(item('fx-single'), 0);
+    assert.match(fb, /<h3>Incorrect<\/h3>/);
+    assert.match(fb, /Your answer/);
+    assert.match(fb, /Official documentation/);
+    assert.doesNotMatch(fb, /Resposta correta|Explicação/);
+  } finally {
+    GHX.setLang('pt');
+  }
+  assert.match(R.feedback(item('fx-single'), 2), /<h3>Correto<\/h3>/);
+});

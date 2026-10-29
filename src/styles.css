@@ -24,6 +24,7 @@
   --side-text: #2b2b2b;
   --focus: #0f6cbd;
   --code-bg: #f6f8fa;
+  --series: #2a78d6;
   --shadow: 0 8px 28px rgba(0, 0, 0, .18);
   color-scheme: light;
 }
@@ -33,7 +34,7 @@
     --bg: #1b1b1b; --bg-2: #242424; --bg-pre: #2b2b2b; --surface: #202020; --text: #ececec; --muted: #a9a9a9;
     --line: #4a4a4a; --line-2: #7a7a7a; --accent: #4ca0f0; --accent-text: #0b1a2a; --accent-soft: #1d3247; --note-bg: #2e2c18; --note-line: #6b6530;
     --ok: #6ccb5f; --ok-soft: #1f3320; --bad: #ff8a80; --bad-soft: #3d1f1d; --part: #f0b54a; --part-soft: #3a2d14;
-    --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; color-scheme: dark;
+    --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; --series: #3987e5; color-scheme: dark;
   }
 }
 
@@ -42,7 +43,7 @@
   --bg: #1b1b1b; --bg-2: #242424; --bg-pre: #2b2b2b; --surface: #202020; --text: #ececec; --muted: #a9a9a9;
   --line: #4a4a4a; --line-2: #7a7a7a; --accent: #4ca0f0; --accent-text: #0b1a2a; --accent-soft: #1d3247; --note-bg: #2e2c18; --note-line: #6b6530;
   --ok: #6ccb5f; --ok-soft: #1f3320; --bad: #ff8a80; --bad-soft: #3d1f1d; --part: #f0b54a; --part-soft: #3a2d14;
-  --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; color-scheme: dark;
+  --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; --series: #3987e5; color-scheme: dark;
 }
 
 /* Alto contraste: texto claro sobre preto, destaques em amarelo e ciano. */
@@ -50,7 +51,7 @@
   --bg: #000000; --bg-2: #000000; --bg-pre: #000000; --surface: #000000; --text: #ffffff; --muted: #ffffff;
   --line: #ffffff; --line-2: #ffffff; --accent: #ffff00; --accent-text: #000000; --accent-soft: #333300; --note-bg: #000000; --note-line: #ffff00;
   --ok: #3ff23f; --ok-soft: #000000; --bad: #ff6b6b; --bad-soft: #000000; --part: #ffd000; --part-soft: #000000;
-  --side: #000000; --side-text: #ffffff; --focus: #00ffff; --code-bg: #000000; color-scheme: dark;
+  --side: #000000; --side-text: #ffffff; --focus: #00ffff; --code-bg: #000000; --series: #ffff00; color-scheme: dark;
 }
 
 /* ---------- base ---------- */
@@ -457,3 +458,58 @@ pre.code {
   .rv-table .rv-c { font-size: .75rem; }
 }
 .notice { background: var(--part-soft); border-left: 4px solid var(--part); padding: .6rem .9rem; font-size: .9rem; margin: 1rem 0 0; }
+
+/* ---------- idioma das questões ---------- */
+.lang-pick { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .75rem; }
+.lang-h { font-weight: 600; }
+.lang-opt { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); border-radius: 999px; padding: .2rem .8rem; cursor: pointer; background: var(--surface); }
+.lang-opt.sel { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.home-tools { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.rep-tools { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* ---------- painel de progresso ---------- */
+.dash .card { margin-bottom: 1rem; display: block; }
+.dash .card h2 { margin-bottom: .2rem; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: .75rem; margin: 1rem 0; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; min-width: 0; }
+.kpi-l { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.kpi-v { font-size: 1.7rem; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.kpi-of { font-size: .95rem; font-weight: 400; color: var(--muted); }
+.kpi-n { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.dash-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1rem; }
+.dash-grid .card { margin-bottom: 0; min-width: 0; }
+.dash-grid + .card { margin-top: 1rem; }
+.chart { width: 100%; height: auto; display: block; margin: .5rem 0; overflow: visible; }
+.ch-grid { stroke: var(--line); stroke-width: 1; opacity: .6; }
+.ch-ax { fill: var(--muted); font-size: 11px; }
+.ch-lbl { fill: var(--text); font-size: 12px; font-weight: 700; }
+.ch-line { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ch-dot { fill: var(--series); stroke: var(--surface); stroke-width: 2; }
+.ch-hit { fill: transparent; }
+.ch-cross { stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; }
+.ch-pt:hover .ch-cross, .ch-pt:focus .ch-cross { opacity: 1; }
+.ch-pt:hover .ch-dot, .ch-pt:focus .ch-dot { r: 6; }
+.ch-pt:focus { outline: none; }
+.ch-pt:focus-visible .ch-dot { stroke: var(--focus); stroke-width: 3; }
+.hbars { list-style: none; margin: .5rem 0; padding: 0; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) 3.6rem; align-items: center; gap: .6rem; padding: .3rem .2rem; border-radius: 4px; }
+.hbars li:hover, .hbars li:focus-visible { background: var(--bg-2); }
+.hb-l { min-width: 0; overflow-wrap: anywhere; font-size: .9rem; }
+.hb-t { height: 10px; background: var(--bg-2); border-radius: 5px; overflow: hidden; }
+.hb-f { display: block; height: 100%; background: var(--series); border-radius: 0 4px 4px 0; }
+.hb-v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: .9rem; }
+.tag { display: inline-block; font-size: .7rem; font-weight: 600; border: 1px solid var(--line-2); border-radius: 999px; padding: 0 .45rem; color: var(--text); vertical-align: 1px; }
+.lv h3 { margin: .8rem 0 0; }
+.recs { margin: .5rem 0 0; padding-left: 1.2rem; }
+.recs li { margin-bottom: .35rem; }
+.tview summary { cursor: pointer; color: var(--accent); font-size: .875rem; margin-top: .25rem; }
+.tview .dom-table { margin: .5rem 0 0; font-size: .875rem; }
+.hist-table { font-size: .875rem; margin-bottom: 0; }
+.dash .rv-wrap { overflow-x: auto; }
+.empty-dash .actions { margin-top: 1rem; }
+.ch-tip { position: absolute; z-index: 50; max-width: 320px; background: var(--text); color: var(--bg); font-size: .8rem; padding: .35rem .55rem; border-radius: 6px; pointer-events: none; box-shadow: var(--shadow); }
+:root[data-scheme="contrast"] .ch-tip { background: #000; color: #fff; border: 1px solid #fff; }
+@media (max-width: 820px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  .hbars li { grid-template-columns: minmax(0, 1fr) 70px 3.4rem; }
+}

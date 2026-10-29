@@ -507,6 +507,63 @@ async function run() {
   assert.match(await text('[data-bank-card="gh300-practice-a"]'), /Continuar/);
   step('Exit simulator mantém a tentativa para continuar');
 
+  // Mesma prova em inglês
+  await click('input[data-act="lang"][data-v="en"]');
+  assert.equal(await evaluate(`GHX.App.store.pref('lang')`), 'en');
+  await click('[data-act="start"][data-mode="exam"][data-bank="gh300-s10"]');
+  await waitFor(`document.querySelector('.pre')`);
+  assert.equal(await app('a.lang'), 'en');
+  assert.match(await text('.pre-card'), /In the real exam/);
+  assert.equal(await evaluate(`document.documentElement.lang`), 'en-US');
+  for (let i = 0; i < 3; i++) await click(i ? '[data-act="pre-next"]' : '[data-act="pre-accept"]');
+  assert.match(await text('.pre-card'), /Practice Exam 10 — Beginner/);
+  await click('[data-act="pre-start"]');
+  await waitFor(`document.querySelector('.exam')`);
+  for (let i = 0; i < 6; i++) {
+    id = await curId();
+    const en = await evaluate(`GHX.itemIn(${JSON.stringify(id)}, 'en').q.replace(/[\`*]/g, '')`);
+    assert.ok((await text('.stem')).replace(/\s+/g, ' ').includes(en.replace(/\s+/g, ' ').slice(0, 60)), 'enunciado não está em inglês: ' + id);
+    assert.equal(await evaluate(`GHX.looksPortuguese(document.querySelector('.q-scroll').innerText)`), false, 'texto em português em ' + id);
+    await answer(id);
+    await next();
+  }
+  await shot('12-exam-en');
+  await click('[data-act="review"]');
+  await click('[data-act="finish"]');
+  await waitFor(`/Are you sure/.test(document.body.textContent)`);
+  assert.match(await text('.modal'), /When you finish, the exam ends/);
+  await confirmYes();
+  await waitFor(`document.querySelector('.report')`);
+  assert.match(await text('.rep-h'), /Score report/);
+  assert.match(await text('.report'), /Performance by domain/);
+  assert.match(await text('.report'), /Language: English/);
+  const enRes = await evaluate(`GHX.App.store.history('gh300-s10')[0]`);
+  assert.equal(enRes.lang, 'en');
+  assert.equal(enRes.result.max, 60);
+  assert.ok(enRes.result.score >= 6, 'as 6 respostas certas deveriam pontuar');
+  await shot('13-report-en');
+  step('mesma prova em inglês: pré-prova, questões, revisão e relatório traduzidos, com o mesmo gabarito');
+
+  // Painel de progresso
+  await click('[data-act="dash"]');
+  await waitFor(`document.querySelector('.dash')`);
+  assert.match(await text('.dash h1'), /Painel de progresso/);
+  assert.match(await text('.kpis'), /Simulados concluídos\s*2\s*de 12/);
+  assert.match(await text('.kpis'), /1 em português · 1 em inglês/);
+  assert.equal(await evaluate(`document.querySelectorAll('.chart .ch-pt').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.hist-table tbody tr').length`), 2);
+  assert.ok(await evaluate(`document.querySelectorAll('.dash-grid .hbars li').length`) === 6);
+  await evaluate(`document.querySelector('.ch-pt').dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))`);
+  assert.match(await evaluate(`(document.querySelector('.ch-tip:not([hidden])') || {}).textContent || ''`), /Simulado 04/);
+  await shot('14-dashboard');
+  await click('.hist-table [data-act="report"]');
+  await waitFor(`document.querySelector('.report')`);
+  await click('[data-act="home"]');
+  await waitFor(`document.querySelector('.home')`);
+  assert.equal(await evaluate(`document.documentElement.lang`), 'pt-BR');
+  await click('input[data-act="lang"][data-v="pt"]');
+  step('painel de progresso: indicadores, evolução com dica ao passar o mouse, domínios e histórico');
+
   // Celular
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   await click('[data-act="continue"][data-bank="gh300-practice-a"]');

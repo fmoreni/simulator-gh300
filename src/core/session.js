@@ -52,6 +52,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       id: opts.id || ('t' + now.toString(36) + Math.floor(rng() * 1e6).toString(36)),
       bankId: bank.id,
       mode: mode,
+      lang: opts.lang === 'en' ? 'en' : 'pt',
       extraTime: !!opts.extraTime,
       createdAt: now,
       status: 'ready',

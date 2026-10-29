@@ -23,12 +23,12 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       fullQuestions: 60,
     },
     domains: [
-      { d: 1, name: 'Use GitHub Copilot responsibly', short: 'IA responsável', weight: [15, 20] },
-      { d: 2, name: 'Use GitHub Copilot features', short: 'Recursos do Copilot', weight: [25, 30] },
-      { d: 3, name: 'Understand GitHub Copilot data and architecture', short: 'Dados e arquitetura', weight: [10, 15] },
-      { d: 4, name: 'Apply prompt engineering and context crafting', short: 'Prompts e contexto', weight: [10, 15] },
-      { d: 5, name: 'Improve developer productivity with GitHub Copilot', short: 'Produtividade', weight: [10, 15] },
-      { d: 6, name: 'Configure privacy, content exclusions, and safeguards', short: 'Privacidade e salvaguardas', weight: [10, 15] },
+      { d: 1, name: 'Use GitHub Copilot responsibly', short: 'IA responsável', short_en: 'Responsible AI', weight: [15, 20] },
+      { d: 2, name: 'Use GitHub Copilot features', short: 'Recursos do Copilot', short_en: 'Copilot features', weight: [25, 30] },
+      { d: 3, name: 'Understand GitHub Copilot data and architecture', short: 'Dados e arquitetura', short_en: 'Data and architecture', weight: [10, 15] },
+      { d: 4, name: 'Apply prompt engineering and context crafting', short: 'Prompts e contexto', short_en: 'Prompts and context', weight: [10, 15] },
+      { d: 5, name: 'Improve developer productivity with GitHub Copilot', short: 'Produtividade', short_en: 'Productivity', weight: [10, 15] },
+      { d: 6, name: 'Configure privacy, content exclusions, and safeguards', short: 'Privacidade e salvaguardas', short_en: 'Privacy and safeguards', weight: [10, 15] },
     ],
   };
 

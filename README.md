@@ -4,7 +4,9 @@ Simulador de provas para a certificação **GH-300: GitHub Copilot**. São **12 
 
 > Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. Todas as questões são originais e escritas a partir da documentação oficial; nenhuma vem de dumps ou de provas reais. O resultado aqui **não** prevê a nota oficial.
 
+- **A mesma prova em português ou em inglês:** as 720 questões têm versão em inglês, com os mesmos ids, gabaritos e ordem. Os termos seguem a documentação oficial em inglês, como na prova real.
 - Interface em português; a moldura da prova (botões, avisos e telas) fica em inglês, como na prova real.
+- **Painel de progresso** com evolução das tentativas, desempenho por domínio, situação de cada simulado e recomendações.
 - Funciona offline, em um único arquivo HTML, sem instalar nada.
 - Modo exame com cronômetro e modo estudo com correção e explicação em cada questão.
 - Relatório com aproveitamento por domínio, gabarito comentado e links para a documentação oficial.
@@ -36,6 +38,7 @@ Depois acesse **http://localhost:8765/dev.html**. O projeto não tem dependênci
 ### Passo a passo
 
 1. **Tela inicial.** Os simulados aparecem agrupados em **Iniciante**, **Intermediário** e **Avançado**. Cada cartão mostra o número de questões, o tempo, o formato e os tipos de item.
+   - Em **Idioma das questões**, escolha **Português** ou **English** antes de começar. Vale para as próximas tentativas; a tentativa em andamento mantém o idioma em que começou.
 2. **Escolha o modo:**
    - **Modo exame:** simula a prova real, com cronômetro de 100 minutos e sem respostas durante a prova. Se o inglês não for sua língua nativa, marque **"Acrescentar 30 minutos"** antes de começar, como a acomodação oficial.
    - **Modo estudo:** sem cronômetro e com navegação livre. O botão **Corrigir** mostra se você acertou, a explicação, o motivo de cada alternativa e os links oficiais.
@@ -48,6 +51,27 @@ Depois acesse **http://localhost:8765/dev.html**. O projeto não tem dependênci
 5. **Question Review.** Depois da última questão, abre a tela de revisão, com filtros (All, Answered, Unanswered, For Review). Clique em uma questão para voltar a ela (*review mode*) e use **Exit Review Mode** para retornar à tabela. **Finish** encerra a prova.
 6. **Comentários.** Se você marcou **Leave Feedback**, aparece a tela *Item Comments* para escrever seus comentários, fora do tempo da prova.
 7. **Relatório.** Mostra o aproveitamento em %, o desempenho em cada um dos seis domínios e todas as questões com sua resposta, o gabarito, a explicação e os links. Use **"Mostrar só erradas e parciais"** para focar nos pontos fracos.
+8. **Painel de progresso.** O botão no topo da tela inicial (ou no relatório) abre o acompanhamento de todos os simulados finalizados.
+
+### Prova em inglês
+
+A prova oficial é aplicada em inglês. Para treinar nessas condições, escolha **English** em *Idioma das questões* na tela inicial:
+
+- Enunciados, alternativas, listas, itens de arrastar, comentários em código, explicações e justificativas aparecem em inglês.
+- As telas da prova (pré-prova, instruções, avisos, revisão, pausa, ajuda e comentários) e o relatório também ficam em inglês.
+- As questões, o gabarito, a ordem e a correção são os mesmos da versão em português. Assim dá para fazer o mesmo simulado nos dois idiomas e comparar o resultado.
+- O relatório e o painel indicam o idioma de cada tentativa.
+
+### Painel de progresso
+
+- **Indicadores:** simulados concluídos (de 12), tentativas (exame/estudo e português/inglês), média geral, melhor resultado, questões dominadas (acertadas por completo ao menos uma vez, de 720) e tempo de prática.
+- **Evolução do aproveitamento:** um ponto por tentativa, em ordem cronológica. Passe o mouse (ou use <kbd>Tab</kbd>) para ver simulado, data, modo e idioma.
+- **Desempenho por domínio:** soma de todas as tentativas, com crédito parcial, e o domínio mais fraco em destaque.
+- **Simulados por nível:** melhor aproveitamento de cada simulado e quantas tentativas você fez.
+- **Recomendações:** domínio a reforçar e próximo simulado sugerido.
+- **Histórico:** as últimas 50 tentativas, com link para o relatório de cada uma.
+
+Os gráficos também podem ser vistos como tabela (**Ver como tabela**).
 
 ### Regras iguais às da prova real
 
@@ -71,7 +95,7 @@ Arrastar e soltar funciona com **mouse, caneta e toque**. Também dá para tocar
 ### Progresso, histórico e acessibilidade
 
 - A tentativa em andamento fica salva no navegador e é **retomada ao reabrir a página** (botão **Continuar** no cartão do simulado). O tempo com a página fechada não é contado.
-- Cada cartão mostra o **histórico** das tentativas e o botão **Ver relatório** da última.
+- Cada cartão mostra o **histórico** das tentativas (com o idioma) e o botão **Ver relatório** da última.
 - Os dados ficam só no navegador e no computador em que você fez os simulados. Limpar os dados do site apaga o histórico.
 - **Color Scheme** oferece os modos claro, escuro e alto contraste. **Text Size** ajusta o tamanho do texto. O layout funciona no celular.
 
@@ -139,7 +163,7 @@ O sandbox geral da Microsoft (`aka.ms/examdemo`) mostra estudos de caso, séries
 | Comando | O que faz |
 | --- | --- |
 | `npm run build` | Gera `dist/gh300-platform.html` (arquivo único, autocontido) e `dist/dev.html` (com doctype e charset, para testes locais) |
-| `npm test` | Testes de núcleo, de renderers e a validação estrutural dos 12 bancos (`node --test tests/`) |
+| `npm test` | Testes de núcleo, de renderers, a validação estrutural dos 12 bancos e a das traduções (`node --test tests/`) |
 | `npm run serve` | Serve `dist/` em http://localhost:8765 |
 | `npm run e2e` | Faz um simulado inteiro em Chrome headless via Chrome DevTools Protocol, com mouse, toque e teclado (sem Puppeteer/Playwright) |
 
@@ -159,6 +183,8 @@ src/
     scoring.js        correção pura (item, resposta) → 0..1, com crédito parcial e desempenho por domínio
     session.js        máquina de estados da tentativa (recebe now e rng)
     storage.js        localStorage com versão do formato e migração
+    i18n.js           textos da interface em pt/en (GHX.t), tradução das questões (GHX.localize) e validação
+    progress.js       consolidação do histórico para o painel de progresso
   banks/
     _refs.js          links oficiais usados nas referências
     practice-a.js     Simulado 01      practice-b.js   Simulado 02      s03.js   Simulado 03
@@ -166,9 +192,11 @@ src/
     s07.js            Simulado 07      s08.js          Simulado 08      s09.js   Simulado 09
     s10.js            Simulado 10      s11.js          Simulado 11      s12.js   Simulado 12
     extensions.js     itens extras e correções sem editar os bancos
+    en/               versão em inglês de cada simulado (mesmos ids; só os textos)
   ui/
     dnd.js            arrastar e soltar com Pointer Events, mais alternativa por teclado
     renderers.js      um renderer por tipo de item e atualização pura das respostas
+    dashboard.js      painel de progresso (indicadores e gráficos em SVG)
     app.js            telas, moldura da prova, ferramentas, relatório e eventos
   index.html, styles.css
 tests/
@@ -207,8 +235,23 @@ O motor também suporta `yesno`, `ps` (problema–solução), `hotspot` e estudo
 - **Corrigir uma questão** sem mexer no banco: use `GHX.patchItem('id', { exp: '…' })` em `src/banks/extensions.js`.
 - **Acrescentar questões** a um banco: use `GHX.addItems('gh300-s03', [ … ])` no mesmo arquivo.
 - **Criar um simulado:** crie `src/banks/novo.js` com `GHX.registerBank({ id, title, subtitle, level, minutes: 100, track: 'full', blurb, qs: [...] })` e inclua o arquivo em `BANKS` no `build.config.mjs`, antes de `extensions.js`.
+- **Traduzir:** toda questão precisa de versão em inglês em `src/banks/en/`. O arquivo traz só os textos, pelo id:
 
-Depois de qualquer mudança, rode `npm run build` e `npm test`. A validação confere ids únicos, domínio, gabarito coerente com o tipo, justificativas, links oficiais, o formato da GH-300 e a distribuição pelos pesos dos domínios.
+```js
+GHX.addBankTranslations('en', { 'gh300-s03': { title, subtitle, blurb } });
+GHX.addTranslations('en', {
+  's03-11': {
+    q: 'In Copilot Chat in VS Code, which variable…',
+    o: [null, null, null, null],   // null mantém a alternativa original (código, nomes de produto)
+    why: ['…', '…', '…', '…'],
+    exp: '…',
+  },
+  // order: o = { id: rótulo }; match/inline: targets/tiles/tokens = { id: rótulo };
+  // dropdown: lists = { lista: [opções] }; code/text: mesmos marcadores [[id]] do original
+});
+```
+
+Depois de qualquer mudança, rode `npm run build` e `npm test`. A validação confere ids únicos, domínio, gabarito coerente com o tipo, justificativas, links oficiais, o formato da GH-300 e a distribuição pelos pesos dos domínios. Nas traduções, confere se cada questão tem versão em inglês, se a estrutura bate com o original (alternativas, ids, marcadores) e se sobrou texto em português.
 
 ## Fontes oficiais
 

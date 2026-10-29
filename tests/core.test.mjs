@@ -387,3 +387,96 @@ test('ids únicos entre todos os bancos e todos os tipos da GH-300 aparecem', { 
   for (const t of FORMAT.itemTypes) assert.ok(types.has(t), `nenhum item do tipo ${t}`);
   for (const t of types) assert.ok(FORMAT.itemTypes.includes(t), `tipo fora do formato: ${t}`);
 });
+
+// ---------- idiomas e painel de progresso ----------
+
+test('i18n: GHX.t troca o idioma, interpola e cai no português quando falta a chave', () => {
+  GHX.setLang('en');
+  assert.equal(GHX.t('instr.single', { n: 4 }), 'Select 1 answer from 4 options.');
+  assert.equal(GHX.t('chave.inexistente'), 'chave.inexistente');
+  assert.equal(GHX.typeLabel('inline'), 'Drag and Drop (code)');
+  assert.equal(GHX.domShort(GHX.CERTS['GH-300'].domains[0]), 'Responsible AI');
+  GHX.setLang('pt');
+  assert.equal(GHX.t('instr.single', { n: 4 }), 'Selecione 1 resposta entre 4 alternativas.');
+  assert.equal(GHX.domShort(GHX.CERTS['GH-300'].domains[0]), 'IA responsável');
+  for (const k of Object.keys(GHX.STR.pt)) assert.ok(k in GHX.STR.en, 'sem tradução da interface: ' + k);
+});
+
+test('i18n: localize troca só os textos e mantém ids, gabarito e tipo', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  for (const b of real) {
+    for (const it of GHX.bankItems(b)) {
+      const en = GHX.localize(it, 'en');
+      assert.notEqual(en, it, 'sem tradução: ' + it.id);
+      assert.equal(en.id, it.id);
+      assert.equal(en.type, it.type);
+      assert.deepEqual(en.a, it.a);
+      assert.deepEqual(en.ref, it.ref);
+      for (const k of ['targets', 'tiles', 'tokens']) if (it[k]) assert.deepEqual(en[k].map((x) => x.id), it[k].map((x) => x.id));
+      if (it.type === 'order') assert.deepEqual(en.o.map((x) => x.id), it.o.map((x) => x.id));
+      if (it.code) assert.deepEqual(GHX.slots(en.code), GHX.slots(it.code));
+      assert.equal(GHX.localize(it, 'pt'), it);
+    }
+  }
+  assert.equal(GHX.localize(GHX.getItem('fx-single'), 'en'), GHX.getItem('fx-single'), 'item sem tradução volta igual');
+});
+
+test('i18n: as 720 questões e os 12 simulados têm tradução completa para o inglês', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const errors = real.flatMap((b) => GHX.checkBankTranslation(b, 'en'));
+  assert.deepEqual(errors, []);
+  assert.deepEqual(Object.keys(GHX.TR.en).filter((id) => !GHX.getItem(id)), [], 'traduções sem questão');
+  assert.match(GHX.bankText(real[0], 'en').title, /^Practice Exam \d\d — (Beginner|Intermediate|Advanced)$/);
+});
+
+test('i18n: o validador acusa tradução faltando, estrutura errada e português esquecido', () => {
+  const fx = (id) => GHX.getItem(id);
+  GHX.TR.en['fx-multi'] = { q: 'Q2', exp: 'e', o: ['A', 'B'] };
+  GHX.TR.en['fx-inline'] = { q: 'Q4', exp: 'e', code: 'a: [[g1]]' };
+  GHX.TR.en['fx-dd'] = { q: 'Qual é a resposta?', exp: 'e' };
+  try {
+    assert.match(GHX.checkTranslation(fx('fx-single'), 'en')[0], /sem tradução/);
+    assert.match(GHX.checkTranslation(fx('fx-multi'), 'en').join(), /o deve ter 4/);
+    assert.match(GHX.checkTranslation(fx('fx-inline'), 'en').join(), /marcadores/);
+    assert.match(GHX.checkTranslation(fx('fx-dd'), 'en').join(), /português em q/);
+  } finally {
+    delete GHX.TR.en['fx-multi']; delete GHX.TR.en['fx-inline']; delete GHX.TR.en['fx-dd'];
+  }
+  assert.equal(GHX.looksPortuguese('Select the `não` option on github.com'), false);
+  assert.equal(GHX.looksPortuguese('Selecione a opção'), true);
+});
+
+test('sessão guarda o idioma da tentativa', () => {
+  assert.equal(S.create(bank, { now: 0 }).lang, 'pt');
+  assert.equal(S.create(bank, { now: 0, lang: 'en' }).lang, 'en');
+  assert.equal(S.create(bank, { now: 0, lang: 'xx' }).lang, 'pt');
+});
+
+test('progresso: consolida tentativas, domínios, questões dominadas e recomendações', () => {
+  const run = (lang, answers, at) => {
+    const att = S.create(bank, { mode: 'exam', now: at, rng: S.seeded(1), lang });
+    S.start(att, at);
+    Object.assign(att.answers, answers);
+    S.finish(att, at + 10 * MIN, 'submitted');
+    return att;
+  };
+  const a1 = run('pt', { 'fx-single': 2, 'fx-multi': [0] }, 1000);
+  const a2 = run('en', { 'fx-single': 0, 'fx-multi': [0, 2], 'fx-dd': { l1: 0, l2: 2 } }, 5000);
+  const banks = [bank];
+  const s = GHX.Progress.summary([a2, a1, { status: 'running' }], banks);
+  assert.equal(s.attempts, 2);
+  assert.equal(s.banksDone, 1);
+  assert.deepEqual(s.byLang, { pt: 1, en: 1 });
+  assert.deepEqual(s.trend.map((p) => p.lang), ['pt', 'en'], 'ordem cronológica');
+  assert.equal(s.mastered, 3, 'fx-single, fx-multi e fx-dd acertados por completo ao menos uma vez');
+  assert.equal(s.itemsTotal, GHX.bankItems(bank).length);
+  assert.equal(s.timeMs, 20 * MIN);
+  assert.equal(s.best.pct, Math.max(a1.result.pct, a2.result.pct));
+  assert.equal(s.perBank[0].attempts, 2);
+  assert.equal(s.perBank[0].last, a2.result.pct);
+  const d2 = s.domains.find((d) => d.d === 2);
+  assert.equal(d2.max, 4, 'domínio 2 aparece em 2 itens por tentativa');
+  assert.ok(s.weakest && s.weakest.pct === Math.min(...s.domains.filter((d) => d.pct != null).map((d) => d.pct)));
+  const empty = GHX.Progress.summary([], banks);
+  assert.equal(empty.attempts, 0);
+  assert.equal(empty.avg, null);
+  assert.equal(empty.next.id, bank.id);
+});

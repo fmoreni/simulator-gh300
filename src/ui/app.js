@@ -5,7 +5,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 (function () {
   if (typeof document === 'undefined') return;
 
-  var S = GHX.Session, R = GHX.Render, C = GHX.Scoring, esc = GHX.esc;
+  var S = GHX.Session, R = GHX.Render, C = GHX.Scoring, esc = GHX.esc, t = GHX.t;
   var CERT = GHX.CERTS['GH-300'];
   var app = document.getElementById('app');
   var store = GHX.Storage.open();
@@ -29,12 +29,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   };
 
   var SIZES = [0.9, 1, 1.15, 1.3];
-  var SCHEMES = [
-    { id: 'auto', label: 'Padrão do sistema' },
-    { id: 'light', label: 'Claro' },
-    { id: 'dark', label: 'Escuro' },
-    { id: 'contrast', label: 'Alto contraste' },
-  ];
+  var SCHEMES = ['auto', 'light', 'dark', 'contrast'];
 
   function applyPrefs() {
     var root = document.documentElement;
@@ -44,7 +39,16 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   }
 
   function bank() { return ui.att ? GHX.getBank(ui.att.bankId) : null; }
-  function curItem() { return GHX.getItem(S.currentId(ui.att)); }
+  // Questões e textos da prova seguem o idioma escolhido na tentativa; início e painel ficam em português.
+  function attLang() { return ui.att && ui.att.lang === 'en' ? 'en' : 'pt'; }
+  function item(id) { return GHX.itemIn(id, attLang()); }
+  function curItem() { return item(S.currentId(ui.att)); }
+  function bankText() { return GHX.bankText(bank(), attLang()); }
+  function screenLang() {
+    if (ui.screen === 'pre' || ui.screen === 'exam' || ui.screen === 'comments') return attLang();
+    if (ui.screen === 'report') { var r = store.get(ui.reportId); return r && r.lang === 'en' ? 'en' : 'pt'; }
+    return 'pt';
+  }
   function save() { if (ui.att) store.put(ui.att); }
 
   function announce(msg) {
@@ -60,7 +64,11 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var scrollEl = document.querySelector('.q-scroll');
     var scrollTop = scrollEl ? scrollEl.scrollTop : 0;
     var html;
+    GHX.setLang(screenLang());
+    document.documentElement.lang = GHX.locale();
+    hideTip();
     switch (ui.screen) {
+      case 'dash': html = GHX.Dashboard.render(GHX.Progress.summary(store.history(), GHX.listBanks())); break;
       case 'pre': html = renderPre(); break;
       case 'exam': html = renderExam(); break;
       case 'report': html = renderReport(); break;
@@ -82,7 +90,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   function typeList(b) {
     var st = GHX.bankStats(b);
-    return Object.keys(st.types).map(function (t) { return GHX.TYPES[t].label; }).join(' · ');
+    return Object.keys(st.types).map(function (k) { return GHX.typeLabel(k); }).join(' · ');
   }
 
   function sectionList(b) {
@@ -96,7 +104,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   function fmtDate(ms) {
     var d = new Date(ms);
-    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString(GHX.locale()) + ' ' + d.toLocaleTimeString(GHX.locale(), { hour: '2-digit', minute: '2-digit' });
   }
 
   function bankCard(b) {
@@ -105,7 +113,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var hist = store.history(b.id);
     var last = hist[0];
     var actions = [];
-    if (active) actions.push('<button class="btn primary" data-act="continue" data-bank="' + b.id + '" data-k="cont-' + b.id + '">Continuar (' + (active.mode === 'exam' ? 'exame' : 'estudo') + ')</button>');
+    if (active) actions.push('<button class="btn primary" data-act="continue" data-bank="' + b.id + '" data-k="cont-' + b.id + '">Continuar (' + (active.mode === 'exam' ? 'exame' : 'estudo') + (active.lang === 'en' ? ', English' : '') + ')</button>');
     actions.push('<button class="btn' + (active ? '' : ' primary') + '" data-act="start" data-mode="exam" data-bank="' + b.id + '" data-k="exam-' + b.id + '">Modo exame</button>');
     actions.push('<button class="btn" data-act="start" data-mode="study" data-bank="' + b.id + '" data-k="study-' + b.id + '">Modo estudo</button>');
     if (last) actions.push('<button class="btn ghost" data-act="report" data-id="' + last.id + '" data-k="rep-' + b.id + '">Ver relatório</button>');
@@ -121,7 +129,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       '</dl>' +
       '<div class="actions">' + actions.join('') + '</div>' +
       (hist.length ? '<details class="hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
-        return '<li><button class="link" data-act="report" data-id="' + a.id + '">' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + ' · <strong>' + a.result.pct + '%</strong></button></li>';
+        return '<li><button class="link" data-act="report" data-id="' + a.id + '">' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + ' · <strong>' + a.result.pct + '%</strong></button></li>';
       }).join('') + '</ul></details>' : '') +
       '</article>';
   }
@@ -144,12 +152,18 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     }
     groups = groups.filter(function (g) { return g.banks.length; });
     var extra = !!store.pref('extraTime');
+    var lang = store.pref('lang') === 'en' ? 'en' : 'pt';
+    var done = store.history().length;
     return '<div class="home">' +
       '<header class="home-h"><div><h1>Sala de prova GH-300</h1>' +
       '<p class="sub">Simulados para o exame ' + esc(CERT.exam) + ' · domínios do guia de estudo oficial (skills measured as of ' + esc(CERT.asOf.split('-').reverse().join('/')) + ')</p></div>' +
-      '<div class="home-tools"><button class="btn ghost small" data-act="scheme" data-k="home-scheme">Color Scheme</button></div></header>' +
+      '<div class="home-tools"><button class="btn" data-act="dash" data-k="home-dash">Painel de progresso' + (done ? ' (' + done + ')' : '') + '</button>' +
+      '<button class="btn ghost small" data-act="scheme" data-k="home-scheme">Color Scheme</button></div></header>' +
       (ui.notice ? '<p class="notice" role="status">' + esc(ui.notice) + '</p>' : '') +
       '<p class="disclaimer">Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. As questões são originais e baseadas na documentação oficial. A moldura segue o <a href="' + esc(CERT.sandbox) + '" target="_blank" rel="noopener">sandbox oficial das provas do GitHub</a>: uma única seção, sem estudo de caso, com questões de múltipla escolha, Drag and Drop, Build List Reorder e Active Screen.</p>' +
+      '<div class="lang-pick" role="radiogroup" aria-labelledby="lang-h"><span id="lang-h" class="lang-h">Idioma das questões:</span>' + GHX.LANGS.map(function (l) {
+        return '<label class="lang-opt' + (lang === l.id ? ' sel' : '') + '"><input type="radio" name="lang" data-act="lang" data-v="' + l.id + '" data-k="lang-' + l.id + '"' + (lang === l.id ? ' checked' : '') + '> ' + esc(l.label) + '</label>';
+      }).join('') + '<span class="small muted">A mesma prova, com as mesmas questões e o mesmo gabarito, nos dois idiomas. Vale para as próximas tentativas; a prova oficial é em inglês.</span></div>' +
       '<label class="extra"><input type="checkbox" data-act="extra" data-k="extra"' + (extra ? ' checked' : '') + '> Acrescentar 30 minutos no modo exame (acomodação para quem não tem inglês como língua nativa)</label>' +
       groups.map(function (g) {
         return '<section data-level="' + esc(g.name) + '"><h2>' + esc(g.name) + '</h2>' + (g.note ? '<p class="sub">' + esc(g.note) + '</p>' : '') +
@@ -168,42 +182,41 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   var PRE = ['Candidate Agreement', 'Overview', 'Information and Instructions', 'Ready to Start?'];
 
   function renderPre() {
-    var b = bank(), a = ui.att, body = '';
+    var b = bankText(), a = ui.att, body = '';
     var total = S.total(a);
     var mins = Math.round(a.limitMs / 60000);
     var single = a.sections.length === 1;
     switch (ui.pre) {
       case 0:
-        body = '<div class="scrollbox"><p><strong>Na prova real</strong>, você confirma o acordo do candidato das certificações do GitHub: o conteúdo do exame é confidencial, e é proibido copiá-lo ou divulgá-lo, usar outra identidade, receber ajuda, consultar materiais ou dispositivos não autorizados e usar ferramentas de inteligência artificial durante a prova.</p>' +
-          '<p><strong>Neste simulador</strong>, que é independente e não tem vínculo com GitHub, Microsoft ou Pearson VUE, você concorda em usá-lo só para estudo. As questões são originais e o resultado não prevê a nota oficial.</p></div>' +
+        body = '<div class="scrollbox"><p>' + t('pre.agree1') + '</p>' +
+          '<p>' + t('pre.agree2') + '</p></div>' +
           '<div class="actions pre-agree"><button class="btn link-btn" data-act="pre-decline" data-k="pre-decline">No, I don\'t agree</button>' +
           '<button class="btn primary" data-act="pre-accept" data-k="pre-accept">Yes, I agree</button></div>';
         break;
       case 1:
         body = '<p class="pre-exam">Exam GH-300: ' + esc(b.title) + '</p>' +
           '<h2>Welcome!</h2><dl class="pre-facts">' +
-          '<div><dt>Exam Time:</dt><dd>' + mins + ' minutes' + (a.extraTime ? ' (inclui +30 minutos de acomodação)' : '') + '</dd></div>' +
+          '<div><dt>Exam Time:</dt><dd>' + mins + ' minutes' + (a.extraTime ? t('pre.extra') : '') + '</dd></div>' +
           '<div><dt>Total Questions:</dt><dd>' + total + '</dd></div>' +
-          '<div><dt>Minimum Score Required To Pass:</dt><dd>700 (escala de 1 a 1000 na prova real)</dd></div></dl>' +
-          '<p class="small muted">Neste simulador, o resultado sai em aproveitamento %, com crédito parcial.</p>';
+          '<div><dt>Minimum Score Required To Pass:</dt><dd>' + t('pre.passing') + '</dd></div></dl>' +
+          '<p class="small muted">' + t('pre.pctnote') + '</p>';
         break;
       case 2:
         body = '<p class="pre-exam">Exam GH-300: ' + esc(b.title) + '</p>' +
-          '<h3>Question Format and Types</h3><p>A prova pode ter vários tipos de questão: múltipla escolha (uma ou várias respostas; o enunciado diz quantas), Drag and Drop, Build List Reorder e Active Screen. O botão <strong>Help</strong> explica o tipo da questão atual.</p>' +
-          '<h3>Timing</h3><p>O tempo restante aparece no canto superior direito. Você pode ocultar o relógio e mostrá-lo de novo a qualquer momento. Use o tempo como quiser entre as questões.</p>' +
-          '<h3>Unscheduled Breaks</h3><p>Você pode fazer pausas (<strong>Take a Break</strong>) quantas vezes quiser. <strong>O cronômetro continua correndo durante a pausa</strong>, e depois dela você não pode voltar a nenhuma questão exibida antes. Se o tempo acabar durante a pausa, a prova é corrigida com o que foi respondido.</p>' +
-          '<h3>Reviewing Items Later</h3><p>Marque <strong>Review later</strong> nas questões que quer rever. No fim, a tela <strong>Question Review</strong> lista todas as questões, com filtros All, Answered, Unanswered e For Review.</p>' +
-          '<h3>Leaving Feedback on Questions</h3><p>Marque <strong>Leave Feedback</strong> para comentar a questão depois de terminar a prova. O tempo dos comentários é separado do tempo da prova.</p>' +
-          '<h3>Keyboard Shortcuts</h3><p>Arrastar e soltar funciona com mouse, caneta e toque. Pelo teclado: <kbd>Tab</kbd> até o item, <kbd>Enter</kbd>/<kbd>Espaço</kbd> para pegar, setas para escolher o destino, <kbd>Enter</kbd> para soltar, <kbd>Esc</kbd> para cancelar e <kbd>Delete</kbd> para remover.</p>' +
-          '<h3>Viewing Content</h3><p>Role a área da questão para ler todo o enunciado e todas as alternativas antes de responder.</p>';
+          '<h3>Question Format and Types</h3><p>' + t('pre.formats') + '</p>' +
+          '<h3>Timing</h3><p>' + t('pre.timing') + '</p>' +
+          '<h3>Unscheduled Breaks</h3><p>' + t('pre.breaks') + '</p>' +
+          '<h3>Reviewing Items Later</h3><p>' + t('pre.review') + '</p>' +
+          '<h3>Leaving Feedback on Questions</h3><p>' + t('pre.feedback') + '</p>' +
+          '<h3>Keyboard Shortcuts</h3><p>' + t('pre.keys') + '</p>' +
+          '<h3>Viewing Content</h3><p>' + t('pre.view') + '</p>';
         break;
       case 3:
         body = '<p class="pre-exam">Exam GH-300: ' + esc(b.title) + '</p><dl class="pre-facts">' +
           '<div><dt>Exam Time:</dt><dd>' + mins + ' minutes</dd></div>' +
           '<div><dt>Total Questions:</dt><dd>' + total + '</dd></div></dl>' +
-          (single ? '<p>Todas as questões estão em uma única seção. Você pode navegar livremente entre elas até clicar em <strong>Finish</strong>, exceto nas questões travadas por uma pausa.</p>'
-            : '<p><strong>Note:</strong> as questões estão agrupadas em seções. Depois de concluir uma seção, você não pode voltar a ela.</p>') +
-          '<p>Ao clicar em <strong>Start</strong>, o cronômetro começa a contar.</p>';
+          '<p>' + t(single ? 'pre.single' : 'pre.sections') + '</p>' +
+          '<p>' + t('pre.start') + '</p>';
         break;
     }
     var next = ui.pre === 3 ? '<button class="btn primary nav-btn" data-act="pre-start" data-k="pre-start">Start</button>'
@@ -272,7 +285,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   // Chave liga/desliga, como no sandbox, para ocultar PROGRESS e TIME REMAINING.
   function toggle(act, hidden, label) {
-    return '<button class="switch" role="switch" data-act="' + act + '" data-k="' + act + '" aria-checked="' + !hidden + '" aria-label="' + (hidden ? 'Mostrar ' : 'Ocultar ') + label + '"><span></span></button>';
+    return '<button class="switch" role="switch" data-act="' + act + '" data-k="' + act + '" aria-checked="' + !hidden + '" aria-label="' + t(hidden ? 'show' : 'hide') + t(label) + '"><span></span></button>';
   }
 
   function renderHeader() {
@@ -280,12 +293,12 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var title = a.view === 'review' ? 'Question Review' :
       sec.kind === 'case' ? 'Case Study Question ' + (a.p + 1) + ' of ' + sec.items.length : 'Question ' + S.number(a);
     var timer = S.isTimed(a)
-      ? '<div class="hblock hright"><div class="hlabel">TIME REMAINING ' + toggle('hide-time', ui.hideTime, 'tempo') + '</div>' +
+      ? '<div class="hblock hright"><div class="hlabel">TIME REMAINING ' + toggle('hide-time', ui.hideTime, 'time.w') + '</div>' +
         '<div class="hval clock mono" id="timer"' + (ui.hideTime ? ' hidden' : '') + '>' + hms(S.remainingMs(a, now())) + '</div></div>'
-      : '<div class="hblock hright"><div class="hlabel">MODE</div><div class="hval">Modo estudo</div></div>';
+      : '<div class="hblock hright"><div class="hlabel">MODE</div><div class="hval">' + t('study.mode') + '</div></div>';
     return '<header class="xh">' +
-      '<div class="xh-title"><h1 data-k="q-title" tabindex="-1">' + esc(title) + '</h1><span class="exam-name">' + esc(bank().title) + '</span></div>' +
-      '<div class="hblock hcenter"><div class="hlabel">PROGRESS ' + toggle('hide-progress', ui.hideProgress, 'progresso') + '</div>' +
+      '<div class="xh-title"><h1 data-k="q-title" tabindex="-1">' + esc(title) + '</h1><span class="exam-name">' + esc(bankText().title) + '</span></div>' +
+      '<div class="hblock hcenter"><div class="hlabel">PROGRESS ' + toggle('hide-progress', ui.hideProgress, 'progress.w') + '</div>' +
       '<div class="hprog"' + (ui.hideProgress ? ' hidden' : '') + '>' +
       '<div><span class="tiny">Question Progress (' + done + '/' + total + ')</span><span class="pbar" role="progressbar" aria-label="Question Progress" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + done + '"><span style="width:' + (100 * done / total).toFixed(1) + '%"></span></span></div>' +
       '<div><span class="tiny">Review</span><span class="pbar rbar" role="progressbar" aria-label="Review" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + flagged + '"><span style="width:' + (100 * flagged / total).toFixed(1) + '%"></span></span></div>' +
@@ -301,12 +314,12 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var html = R.item(it, { resp: a.answers[id], shuffle: a.shuffle[id], checked: checked, locked: locked || checked });
     var tools = '<div class="qtools">' +
       '<div class="qrow"><button class="btn pill" data-act="reset" data-k="reset"' + (isLocked ? ' disabled' : '') + '><span aria-hidden="true">↺</span> Reset Answer</button>' +
-      (!S.isExam(a) ? '<button class="btn small primary" data-act="check" data-k="check"' + (checked ? ' disabled' : '') + '>Corrigir</button>' : '') + '</div>' +
+      (!S.isExam(a) ? '<button class="btn small primary" data-act="check" data-k="check"' + (checked ? ' disabled' : '') + '>' + t('check') + '</button>' : '') + '</div>' +
       '<div class="qrow"><label class="flag"><input type="checkbox" data-act="flag" data-k="flag"' + (a.flags[id] ? ' checked' : '') + (isLocked ? ' disabled' : '') + '> Review later</label>' +
       '<label class="flag"><input type="checkbox" data-act="fbflag" data-k="fbflag"' + (a.fb && a.fb[id] ? ' checked' : '') + (isLocked ? ' disabled' : '') + '> Leave Feedback</label></div>' +
       '</div>';
-    var meta = !S.isExam(a) ? '<p class="meta small">Domínio ' + it.d + ' · ' + esc(CERT.domains[it.d - 1].short) + ' · ' + esc(GHX.TYPES[it.type].label) + '</p>' : '';
-    var lockNote = isLocked ? '<p class="locked-note">This item is locked. Você não pode mais alterar esta resposta.</p>' : '';
+    var meta = !S.isExam(a) ? '<p class="meta small">' + t('domain') + ' ' + it.d + ' · ' + esc(GHX.domShort(CERT.domains[it.d - 1])) + ' · ' + esc(GHX.typeLabel(it.type)) + '</p>' : '';
+    var lockNote = isLocked ? '<p class="locked-note">' + t('locked.note') + '</p>' : '';
     return '<div class="qbox">' + meta + lockNote + html + tools + '</div>';
   }
 
@@ -316,17 +329,17 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var filters = [['all', 'All'], ['answered', 'Answered'], ['unanswered', 'Unanswered'], ['review', 'For Review']];
     var last = S.isExam(a) ? S.isLastSection(a) : true;
     var preview = function (id) {
-      var q = String(GHX.getItem(id).q).replace(/[`*]/g, '').replace(/\s+/g, ' ');
+      var q = String(item(id).q).replace(/[`*]/g, '').replace(/\s+/g, ' ');
       return esc(q.length > 170 ? q.slice(0, 170) + '…' : q);
     };
-    var check = function (on) { return on ? '<span class="tick" aria-label="sim">✓</span>' : ''; };
+    var check = function (on) { return on ? '<span class="tick" aria-label="' + t('rv.yes') + '">✓</span>' : ''; };
     return '<div class="review">' +
       '<section class="rv-instr' + (ui.instrOpen ? ' open' : '') + '"><div class="rv-instr-h"><h2>Review Screen Instructions</h2>' +
       '<button class="btn link-btn small" data-act="rv-instr" data-k="rv-instr" aria-expanded="' + ui.instrOpen + '">' + (ui.instrOpen ? 'Collapse' : 'Expand') + '</button></div>' +
-      (ui.instrOpen ? '<ul><li>Abaixo está a tabela com todas as questões' + (a.sections.length > 1 && S.isExam(a) ? ' desta seção' : '') + '.</li>' +
-        '<li>Selecione uma questão na tabela para começar a percorrer as questões.</li>' +
-        '<li>Para voltar a esta tela, use o botão <strong>Exit Review Mode</strong>.</li>' +
-        '<li>Use o botão <strong>' + (last ? 'Finish' : 'Next Section') + '</strong> para ' + (last ? 'concluir a prova' : 'ir para a próxima seção') + '.</li></ul>' : '') +
+      (ui.instrOpen ? '<ul><li>' + t('rv.i1') + (a.sections.length > 1 && S.isExam(a) ? t('rv.i1.sec') : '') + '.</li>' +
+        '<li>' + t('rv.i2') + '</li>' +
+        '<li>' + t('rv.i3') + '</li>' +
+        '<li>' + t(last ? 'rv.i4.finish' : 'rv.i4.next') + '</li></ul>' : '') +
       '</section>' +
       '<div class="rv-filters" role="radiogroup" aria-label="Filter By"><span class="rv-fl">Filter By:</span>' + filters.map(function (f) {
         var n = count(f[0]);
@@ -338,7 +351,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
           : '<button class="link rv-q" data-act="rv-go" data-s="' + r.s + '" data-p="' + r.p + '" data-k="rv-' + r.n + '">' + preview(r.id) + '</button>';
         return '<tr class="' + (r.locked ? 'locked' : '') + '"><td class="rv-n">' + r.n + '</td><td>' + cell + (r.locked ? ' <span class="small muted">(locked)</span>' : '') + '</td>' +
           '<td class="rv-c">' + check(r.answered) + '</td><td class="rv-c">' + check(!r.answered) + '</td><td class="rv-c">' + check(r.flagged) + '</td></tr>';
-      }).join('') : '<tr><td colspan="5" class="muted">Nenhuma questão neste filtro.</td></tr>') +
+      }).join('') : '<tr><td colspan="5" class="muted">' + t('rv.none') + '</td></tr>') +
       '</tbody></table></div>' +
       '<div class="actions rv-actions">' +
       '<button class="btn primary nav-btn" data-act="' + (last ? 'finish' : 'next-section') + '" data-k="rv-end">' + (last ? 'Finish' : 'Next Section') + '</button>' +
@@ -371,9 +384,9 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var left = S.total(a) - Object.keys(a.seen).length;
     return '<div class="overlay break" role="dialog" aria-modal="true" aria-labelledby="brk-h"><div class="modal">' +
       '<h2 id="brk-h">Your break has started</h2>' +
-      '<p><strong>O cronômetro da prova continua correndo durante a pausa.</strong></p>' +
+      '<p>' + t('brk.running') + '</p>' +
       '<p class="brk-clock mono" id="timer-break">' + hms(S.remainingMs(a, now())) + '</p>' +
-      '<p>Questões restantes ainda não exibidas: <strong>' + left + '</strong>. As questões exibidas antes da pausa estão travadas.</p>' +
+      '<p>' + t('brk.left', { n: left }) + '</p>' +
       '<div class="actions"><button class="btn primary" data-act="break-end" data-k="break-end">End Break</button></div></div></div>';
   }
 
@@ -386,9 +399,9 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     a.sections.forEach(function (s) { s.items.forEach(function (id) { idx[id] = ++n; }); });
     ids.sort(function (x, y) { return idx[x] - idx[y]; });
     return '<div class="pre"><div class="pre-card"><h1>Item Comments</h1>' +
-      '<p>Você marcou <strong>Leave Feedback</strong> nestas questões. Escreva os comentários abaixo; este tempo é separado do tempo da prova.</p>' +
+      '<p>' + t('cmt.intro') + '</p>' +
       ids.map(function (id) {
-        var q = String(GHX.getItem(id).q).replace(/[`*]/g, '');
+        var q = String(item(id).q).replace(/[`*]/g, '');
         return '<div class="cmt"><label for="cmt-' + esc(id) + '"><strong>Question ' + idx[id] + '</strong> — ' + esc(q.length > 140 ? q.slice(0, 140) + '…' : q) + '</label>' +
           '<textarea id="cmt-' + esc(id) + '" class="fb-text" data-cmt="' + esc(id) + '" rows="3">' + esc((a.notes && a.notes[id]) || '') + '</textarea></div>';
       }).join('') +
@@ -414,32 +427,32 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       case 'incomplete':
         return modal('Incomplete Question Warning',
           '<p>You have not selected an answer for this question or have not selected enough answers. Select OK to proceed to the next question although this question is incomplete. Select CANCEL to remain on the question.</p>' +
-          '<p class="small muted">Você respondeu ' + m.given + ' de ' + m.expected + ' parte(s).</p>',
+          '<p class="small muted">' + t('inc.parts', { a: m.given, b: m.expected }) + '</p>',
           '<button class="btn" data-act="modal-close" data-k="m-no">Cancel</button><button class="btn primary" data-act="modal-yes" data-k="m-yes">OK</button>');
       case 'details': {
         var it = curItem();
         return modal('Question Details', '<dl class="facts">' +
           '<div><dt>Question</dt><dd>' + S.number(a) + ' of ' + S.total(a) + '</dd></div>' +
-          '<div><dt>Type</dt><dd>' + esc(GHX.TYPES[it.type].label) + '</dd></div>' +
+          '<div><dt>Type</dt><dd>' + esc(GHX.typeLabel(it.type)) + '</dd></div>' +
           '<div><dt>Status</dt><dd>' + (C.isComplete(it, a.answers[it.id]) ? 'Answered' : C.isAnswered(it, a.answers[it.id]) ? 'Incomplete' : 'Unanswered') + (a.flags[it.id] ? ' · For Review' : '') + '</dd></div>' +
-          (!S.isExam(a) ? '<div class="wide"><dt>Domínio</dt><dd>' + esc(CERT.domains[it.d - 1].name) + '</dd></div>' : '') +
+          (!S.isExam(a) ? '<div class="wide"><dt>' + t('domain') + '</dt><dd>' + esc(CERT.domains[it.d - 1].name) + '</dd></div>' : '') +
           '</dl><p class="small">' + esc(R.instruction(it)) + '</p>', okBtn());
       }
       case 'progress': {
         var rows = a.sections.map(function (s, i) {
           var n = s.items.filter(function (id) { return C.isAnswered(GHX.getItem(id), a.answers[id]); }).length;
-          var cur = i === a.s ? ' (atual)' : '';
-          var st = s.locked ? ' · travada' : '';
-          return '<li>' + esc(s.kind === 'case' ? 'Estudo de caso: ' + s.title : s.kind === 'ps' ? 'Série problema–solução' : 'Questões') + cur + st + ' — ' + n + ' de ' + s.items.length + ' respondidas</li>';
+          var cur = i === a.s ? t('pg.current') : '';
+          var st = s.locked ? t('pg.locked') : '';
+          return '<li>' + esc(s.kind === 'case' ? t('pg.case') + s.title : s.kind === 'ps' ? t('pg.ps') : t('pg.qs')) + cur + st + t('pg.row', { a: n, b: s.items.length }) + '</li>';
         }).join('');
-        return modal('Progress', '<p>' + answeredCount() + ' de ' + S.total(a) + ' questões respondidas · ' + flaggedCount() + ' marcadas para revisão.</p>' + (a.sections.length > 1 ? '<ul>' + rows + '</ul>' : '') +
-          (S.isTimed(a) ? '<p>Tempo restante: <span class="mono">' + hms(S.remainingMs(a, now())) + '</span></p>' : ''), okBtn());
+        return modal('Progress', '<p>' + t('pg.sum', { a: answeredCount(), b: S.total(a), c: flaggedCount() }) + '</p>' + (a.sections.length > 1 ? '<ul>' + rows + '</ul>' : '') +
+          (S.isTimed(a) ? '<p>' + t('pg.time') + '<span class="mono">' + hms(S.remainingMs(a, now())) + '</span></p>' : ''), okBtn());
       }
       case 'break': {
         var sum = S.breakSummary(a);
-        return modal('Take a Break', '<p>Você viu <strong>' + sum.seen + '</strong> questão(ões) desde a última pausa; <strong>' + sum.unanswered + '</strong> estão sem resposta e <strong>' + sum.flagged + '</strong> estão marcadas para revisão.</p>' +
-          '<p>Responda ou revise essas questões antes de começar a pausa. <strong>Depois da pausa, você não poderá voltar a elas.</strong></p>' +
-          '<p><strong>O cronômetro da prova continua correndo durante a pausa.</strong></p>',
+        return modal('Take a Break', '<p>' + t('brk.sum', { a: sum.seen, b: sum.unanswered, c: sum.flagged }) + '</p>' +
+          '<p>' + t('brk.warn') + '</p>' +
+          '<p>' + t('brk.running') + '</p>',
           '<button class="btn" data-act="modal-close" data-k="m-no">Return to Exam</button><button class="btn primary" data-act="modal-yes" data-k="m-yes">Start Break</button>');
       }
       case 'calc': {
@@ -451,7 +464,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       case 'scheme': {
         var cur = store.pref('scheme') || 'auto';
         return modal('Color Scheme', '<div class="opts" role="radiogroup">' + SCHEMES.map(function (s) {
-          return '<label class="opt' + (cur === s.id ? ' sel' : '') + '"><input type="radio" name="scheme" data-act="scheme-set" data-v="' + s.id + '" data-k="sch-' + s.id + '"' + (cur === s.id ? ' checked' : '') + '><span>' + esc(s.label) + '</span></label>';
+          return '<label class="opt' + (cur === s ? ' sel' : '') + '"><input type="radio" name="scheme" data-act="scheme-set" data-v="' + s + '" data-k="sch-' + s + '"' + (cur === s ? ' checked' : '') + '><span>' + esc(t('sch.' + s)) + '</span></label>';
         }).join('') + '</div>', okBtn(), 'narrow');
       }
       case 'textsize': {
@@ -462,26 +475,12 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       }
       case 'help': {
         var hit = a && a.view !== 'review' ? curItem() : null;
-        var TYPE_HELP = {
-          single: 'Multiple choice, select one: há várias alternativas e uma resposta correta. Selecione o botão de opção ao lado da resposta.',
-          multi: 'Multiple choice, multiple select: há várias respostas corretas e o enunciado diz quantas selecionar. Marque as caixas de seleção.',
-          match: 'Drag and Drop: arraste os itens da esquerda para os alvos da Answer Area. A posição em que você solta cada item é a resposta.',
-          inline: 'Drag and Drop: arraste os valores para as lacunas do código ou da configuração na Answer Area.',
-          order: 'Build List Reorder: mova as ações para a Answer Area e ordene-as de cima para baixo. Pode haver mais ações do que posições.',
-          dropdown: 'Active Screen: escolha uma opção em cada lista da tela ou da frase para completar a resposta.',
-        };
-        return modal('Help', (hit && TYPE_HELP[hit.type] ? '<p><strong>' + esc(GHX.TYPES[hit.type].label) + '.</strong> ' + esc(TYPE_HELP[hit.type]) + '</p>' : '') +
-          '<ul class="instr-list">' +
-          '<li><strong>Previous/Next</strong> navegam entre as questões. Depois da última, abre a tela <strong>Question Review</strong>.</li>' +
-          '<li><strong>Review later</strong> marca a questão para revisão; <strong>Leave Feedback</strong> marca para comentar depois da prova.</li>' +
-          '<li><strong>Reset Answer</strong> limpa a resposta da questão atual.</li>' +
-          '<li>Arrastar e soltar: mouse, caneta ou toque (também dá para tocar no item e depois no destino). Pelo teclado: Enter/Espaço pega, setas escolhem o destino, Enter solta, Esc cancela e Delete remove.</li>' +
-          '<li><strong>Take a Break</strong>: o cronômetro continua correndo, e as questões já exibidas ficam travadas.</li>' +
-          '<li>As chaves ao lado de PROGRESS e TIME REMAINING ocultam ou mostram essas informações.</li>' +
-          '<li><strong>Text Size</strong> e <strong>Exit simulator</strong> são recursos do simulador e não existem na prova real.</li></ul>', okBtn());
+        var help = hit && GHX.STR.pt['help.' + hit.type] ? t('help.' + hit.type) : '';
+        return modal('Help', (help ? '<p><strong>' + esc(GHX.typeLabel(hit.type)) + '.</strong> ' + esc(help) + '</p>' : '') +
+          '<ul class="instr-list">' + ['help.l1', 'help.l2', 'help.l3', 'help.l4', 'help.l5', 'help.l6', 'help.l7'].map(function (k) { return '<li>' + t(k) + '</li>'; }).join('') + '</ul>', okBtn());
       }
       case 'exit':
-        return modal('Exit simulator', '<p>Sair do simulador? A tentativa fica salva e pode ser retomada pelo botão <strong>Continuar</strong>. Este recurso não existe na prova real; aqui, o tempo fora do simulador não é contado.</p>',
+        return modal('Exit simulator', '<p>' + t('exit.text') + '</p>',
           '<button class="btn primary" data-act="modal-yes" data-k="m-yes">Yes</button><button class="btn" data-act="modal-close" data-k="m-no">No</button>');
     }
     return '';
@@ -492,46 +491,47 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function renderReport() {
     var a = store.get(ui.reportId);
     if (!a || !a.result) { ui.screen = 'home'; return renderHome(); }
-    var b = GHX.getBank(a.bankId), res = a.result;
+    var b = GHX.bankText(GHX.getBank(a.bankId)), res = a.result, lang = a.lang === 'en' ? 'en' : 'pt';
     var minutes = Math.round(a.elapsedMs / 60000);
-    var reason = a.endReason === 'time' ? 'Tempo esgotado' : 'Finalizada pelo candidato';
+    var reason = t(a.endReason === 'time' ? 'rep.time' : 'rep.submitted');
     var doms = res.domains.map(function (d) {
       var pct = d.pct == null ? '—' : d.pct + '%';
-      return '<tr><td>' + esc(d.name) + '<div class="small muted">' + esc(d.short) + '</div></td><td class="num">' + d.max + '</td><td class="num">' + (Math.round(d.score * 10) / 10) + '</td>' +
+      return '<tr><td>' + esc(d.name) + '<div class="small muted">' + esc(GHX.domShort(CERT.domains[d.d - 1])) + '</div></td><td class="num">' + d.max + '</td><td class="num">' + (Math.round(d.score * 10) / 10) + '</td>' +
         '<td><span class="dbar"><span style="width:' + (d.pct || 0) + '%"></span></span> <strong>' + pct + '</strong></td></tr>';
     }).join('');
     var n = 0;
     var items = [];
     a.sections.forEach(function (s) {
       s.items.forEach(function (id) {
-        var it = GHX.getItem(id);
+        var it = GHX.itemIn(id, lang);
         if (!it) return; // questão removida em uma atualização do simulado
         n++;
         var sc = C.score(it, a.answers[id]);
         if (ui.onlyWrong && sc === 1) return;
         var cls = sc === 1 ? 'ok' : sc > 0 ? 'part' : 'bad';
         items.push('<article class="rep-item ' + cls + '" id="ri-' + esc(id) + '">' +
-          '<header><span class="badge ' + cls + '">' + Math.round(sc * 100) + '%</span> <strong>Questão ' + n + '</strong> · ' +
-          esc(CERT.domains[it.d - 1].short) + ' · ' + esc(GHX.TYPES[it.type].label) + (s.kind === 'case' ? ' · Estudo de caso: ' + esc(s.title) : '') + (a.flags[id] ? ' · ⚑' : '') + '</header>' +
+          '<header><span class="badge ' + cls + '">' + Math.round(sc * 100) + '%</span> <strong>' + t('rep.q', { n: n }) + '</strong> · ' +
+          esc(GHX.domShort(CERT.domains[it.d - 1])) + ' · ' + esc(GHX.typeLabel(it.type)) + (s.kind === 'case' ? ' · ' + t('rep.case') + esc(s.title) : '') + (a.flags[id] ? ' · ⚑' : '') + '</header>' +
           '<div class="stem">' + R.md(it.q) + (it.ex ? '<pre class="code">' + esc(it.ex) + '</pre>' : '') +
-          (it.type === 'ps' ? '<p><strong>Solução:</strong> ' + R.inline(it.sol) + '</p>' : '') +
+          (it.type === 'ps' ? '<p><strong>' + t('solution') + '</strong> ' + R.inline(it.sol) + '</p>' : '') +
           (it.code && it.type !== 'inline' && it.type !== 'dropdown' ? '' : '') + '</div>' +
           R.feedback(it, a.answers[id]) +
-          (a.notes && a.notes[id] ? '<p class="small"><strong>Seu comentário:</strong> ' + esc(a.notes[id]) + '</p>' : '') +
+          (a.notes && a.notes[id] ? '<p class="small"><strong>' + t('rep.comment') + '</strong> ' + esc(a.notes[id]) + '</p>' : '') +
           '</article>');
       });
     });
     return '<div class="report">' +
-      '<header class="rep-h"><div><h1>Relatório</h1><p class="sub">' + esc(b.title) + ' · ' + (a.mode === 'exam' ? 'modo exame' : 'modo estudo') + ' · ' + fmtDate(a.finishedAt) + '</p></div>' +
-      '<button class="btn" data-act="home" data-k="rep-home">Voltar ao início</button></header>' +
+      '<header class="rep-h"><div><h1>' + t('rep.title') + '</h1><p class="sub">' + esc(b.title) + ' · ' + t(a.mode === 'exam' ? 'rep.exam' : 'rep.study') + ' · ' + t('rep.lang', { l: lang === 'en' ? 'English' : 'Português' }) + ' · ' + fmtDate(a.finishedAt) + '</p></div>' +
+      '<div class="rep-tools"><button class="btn" data-act="dash" data-k="rep-dash">' + (lang === 'en' ? 'Progress dashboard' : 'Painel de progresso') + '</button>' +
+      '<button class="btn" data-act="home" data-k="rep-home">' + t('rep.home') + '</button></div></header>' +
       '<section class="rep-score"><div class="big-pct" data-pct="' + res.pct + '">' + res.pct + '%</div><div>' +
-      '<p><strong>Aproveitamento</strong>: ' + (Math.round(res.score * 10) / 10) + ' de ' + res.max + ' pontos, com crédito parcial por parte.</p>' +
-      '<p class="small">' + reason + ' · tempo usado: ' + minutes + ' min' + (a.extraTime ? ' (com +30 min)' : '') + (a.breaks ? ' · pausas: ' + a.breaks : '') + '</p>' +
-      '<p class="note-box small">A prova real usa uma nota escalonada de <strong>1 a 1000</strong>, com corte em <strong>700</strong>. A conversão de acertos para essa escala <strong>não é pública</strong>, então este percentual não é uma previsão da nota oficial.</p>' +
+      '<p>' + t('rep.score', { a: Math.round(res.score * 10) / 10, b: res.max }) + '</p>' +
+      '<p class="small">' + reason + t('rep.used', { n: minutes }) + (a.extraTime ? t('rep.extra') : '') + (a.breaks ? t('rep.breaks', { n: a.breaks }) : '') + '</p>' +
+      '<p class="note-box small">' + t('rep.note') + '</p>' +
       '</div></section>' +
-      '<section><h2>Desempenho por domínio</h2><table class="dom-table"><thead><tr><th>Domínio</th><th>Questões</th><th>Pontos</th><th>Aproveitamento</th></tr></thead><tbody>' + doms + '</tbody></table></section>' +
-      '<section><div class="rep-list-h"><h2>Questões</h2><label><input type="checkbox" data-act="only-wrong" data-k="only-wrong"' + (ui.onlyWrong ? ' checked' : '') + '> Mostrar só erradas e parciais</label></div>' +
-      (items.length ? items.join('') : '<p class="muted">Nenhuma questão neste filtro.</p>') + '</section></div>';
+      '<section><h2>' + t('rep.domains') + '</h2><table class="dom-table"><thead><tr><th>' + t('domain') + '</th><th>' + t('rep.questions') + '</th><th>' + t('rep.points') + '</th><th>' + t('rep.pct') + '</th></tr></thead><tbody>' + doms + '</tbody></table></section>' +
+      '<section><div class="rep-list-h"><h2>' + t('rep.questions') + '</h2><label><input type="checkbox" data-act="only-wrong" data-k="only-wrong"' + (ui.onlyWrong ? ' checked' : '') + '> ' + t('rep.only') + '</label></div>' +
+      (items.length ? items.join('') : '<p class="muted">' + t('rv.none') + '</p>') + '</section></div>';
   }
 
   // ---------- ações ----------
@@ -539,7 +539,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function startAttempt(bankId, mode) {
     var b = GHX.getBank(bankId);
     store.discard(bankId);
-    var att = S.create(b, { mode: mode, now: now(), extraTime: mode === 'exam' && !!store.pref('extraTime') });
+    var att = S.create(b, { mode: mode, now: now(), lang: store.pref('lang'), extraTime: mode === 'exam' && !!store.pref('extraTime') });
     att.notes = {};
     ui.att = att;
     ui.cs = { open: {}, all: false };
@@ -616,8 +616,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function confirmEnd(kind) {
     var a = ui.att;
     var text = kind === 'finish'
-      ? 'Ao finalizar, a prova será encerrada e você não poderá alterar nenhuma resposta. ' + (S.reviewRows(a, 'unanswered').length ? 'Ainda há questões sem resposta nesta seção. ' : '') + 'Are you sure you want to finish?'
-      : 'Depois de ir para a próxima seção, você não poderá voltar às questões desta seção. Are you sure?';
+      ? t('end.finish') + (S.reviewRows(a, 'unanswered').length ? t('end.unanswered') : '') + 'Are you sure you want to finish?'
+      : t('end.section');
     ui.modal = { kind: 'confirm', title: 'Are you sure?', text: text, then: kind };
     render();
   }
@@ -690,7 +690,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       case 'continue': { var at = store.active(el.getAttribute('data-bank')); if (at) resume(at); break; }
       case 'discard': ui.modal = { kind: 'confirm', title: 'Descartar tentativa', text: 'Descartar a tentativa em andamento? Esta ação não pode ser desfeita.', then: 'discard', bank: el.getAttribute('data-bank') }; render(); break;
       case 'report': showReport(el.getAttribute('data-id')); break;
-      case 'home': ui.screen = 'home'; ui.reportId = null; render(); break;
+      case 'home': ui.screen = 'home'; ui.reportId = null; render(); window.scrollTo(0, 0); break;
+      case 'dash': ui.screen = 'dash'; ui.reportId = null; ui.modal = null; render(); window.scrollTo(0, 0); break;
       case 'pre-accept': ui.pre = 1; render(); break;
       case 'pre-decline': ui.modal = null; store.discard(a.bankId); ui.att = null; ui.screen = 'home'; store.pref('current', null); render(); break;
       case 'pre-next': if (ui.pre > 0 && ui.pre < PRE.length - 1) ui.pre++; render(); break;
@@ -755,6 +756,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       case 'fbflag': S.toggleFeedback(a, S.currentId(a)); save(); render(); break;
       case 'rv-filter': ui.filter = el.getAttribute('data-f'); render(); break;
       case 'extra': store.pref('extraTime', el.checked); break;
+      case 'lang': store.pref('lang', el.getAttribute('data-v')); render(); break;
       case 'only-wrong': ui.onlyWrong = el.checked; render(); break;
       case 'scheme-set': store.pref('scheme', el.getAttribute('data-v')); applyPrefs(); render(); break;
       case 'fs-set': store.pref('fs', +el.getAttribute('data-v')); applyPrefs(); render(); break;
@@ -781,7 +783,29 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     if (action) setAnswer(action);
     var target = zone && app.querySelector('[data-zone="' + zone + '"]');
     if (target && target.hasAttribute('tabindex')) target.focus({ preventScroll: true });
-    announce(zone && zone !== '__pool' ? 'Item colocado.' : 'Item removido.');
+    announce(t(zone && zone !== '__pool' ? 'dnd.placed' : 'dnd.removed'));
+  }
+
+  // ---------- dicas dos gráficos do painel ----------
+
+  var tipEl = null;
+  function hideTip() { if (tipEl) tipEl.hidden = true; }
+  function showTip(el) {
+    if (!tipEl) { tipEl = document.createElement('div'); tipEl.className = 'ch-tip'; tipEl.setAttribute('role', 'tooltip'); document.body.appendChild(tipEl); }
+    tipEl.textContent = el.getAttribute('data-tip');
+    tipEl.hidden = false;
+    var r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+    var dot = el.querySelector && el.querySelector('.ch-dot');
+    var ref = dot ? dot.getBoundingClientRect() : r;
+    var left = Math.min(Math.max(8, ref.left + ref.width / 2 - w / 2), document.documentElement.clientWidth - w - 8);
+    var top = ref.top - h - 10;
+    if (top < 8) top = ref.bottom + 10;
+    tipEl.style.left = (left + window.scrollX) + 'px';
+    tipEl.style.top = (top + window.scrollY) + 'px';
+  }
+  function onTip(e) {
+    var el = e.target.closest && e.target.closest('[data-tip]');
+    if (el && app.contains(el)) showTip(el); else hideTip();
   }
 
   // ---------- cronômetro ----------
@@ -796,7 +820,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       save();
       showReport(a.id);
       ui.modal = null;
-      announce('O tempo acabou. A prova foi encerrada.');
+      announce(t('time.up'));
       return;
     }
     ['timer', 'timer-break'].forEach(function (id) {
@@ -812,6 +836,10 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   app.addEventListener('click', onClick);
   app.addEventListener('change', onChange);
   app.addEventListener('keydown', onKey);
+  app.addEventListener('pointerover', onTip);
+  app.addEventListener('focusin', onTip);
+  app.addEventListener('pointerleave', hideTip);
+  window.addEventListener('scroll', hideTip, { passive: true });
   dnd = GHX.DnD.attach(app, { onDrop: onDrop, announce: announce });
   setInterval(tick, 500);
   window.addEventListener('pagehide', function () { if (ui.att && (ui.att.status === 'running' || ui.att.status === 'break')) { S.tick(ui.att, now()); save(); } });
