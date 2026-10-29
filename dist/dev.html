@@ -35,6 +35,7 @@
   --focus: #0f6cbd;
   --code-bg: #f6f8fa;
   --series: #2a78d6;
+  --st-exc: #0f7b0f; --st-good: #5b9a1b; --st-dev: #b58900; --st-imp: #d26a1b; --st-pri: #c42b1c;
   --shadow: 0 8px 28px rgba(0, 0, 0, .18);
   color-scheme: light;
 }
@@ -44,7 +45,7 @@
     --bg: #1b1b1b; --bg-2: #242424; --bg-pre: #2b2b2b; --surface: #202020; --text: #ececec; --muted: #a9a9a9;
     --line: #4a4a4a; --line-2: #7a7a7a; --accent: #4ca0f0; --accent-text: #0b1a2a; --accent-soft: #1d3247; --note-bg: #2e2c18; --note-line: #6b6530;
     --ok: #6ccb5f; --ok-soft: #1f3320; --bad: #ff8a80; --bad-soft: #3d1f1d; --part: #f0b54a; --part-soft: #3a2d14;
-    --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; --series: #3987e5; color-scheme: dark;
+    --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; --series: #3987e5; --st-exc: #5fc45a; --st-good: #a3d15a; --st-dev: #e8be3a; --st-imp: #f0964a; --st-pri: #ff7b72; color-scheme: dark;
   }
 }
 
@@ -53,7 +54,7 @@
   --bg: #1b1b1b; --bg-2: #242424; --bg-pre: #2b2b2b; --surface: #202020; --text: #ececec; --muted: #a9a9a9;
   --line: #4a4a4a; --line-2: #7a7a7a; --accent: #4ca0f0; --accent-text: #0b1a2a; --accent-soft: #1d3247; --note-bg: #2e2c18; --note-line: #6b6530;
   --ok: #6ccb5f; --ok-soft: #1f3320; --bad: #ff8a80; --bad-soft: #3d1f1d; --part: #f0b54a; --part-soft: #3a2d14;
-  --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; --series: #3987e5; color-scheme: dark;
+  --side: #0e0e0e; --side-text: #ececec; --focus: #7cc0ff; --code-bg: #161b22; --series: #3987e5; --st-exc: #5fc45a; --st-good: #a3d15a; --st-dev: #e8be3a; --st-imp: #f0964a; --st-pri: #ff7b72; color-scheme: dark;
 }
 
 /* Alto contraste: texto claro sobre preto, destaques em amarelo e ciano. */
@@ -61,7 +62,7 @@
   --bg: #000000; --bg-2: #000000; --bg-pre: #000000; --surface: #000000; --text: #ffffff; --muted: #ffffff;
   --line: #ffffff; --line-2: #ffffff; --accent: #ffff00; --accent-text: #000000; --accent-soft: #333300; --note-bg: #000000; --note-line: #ffff00;
   --ok: #3ff23f; --ok-soft: #000000; --bad: #ff6b6b; --bad-soft: #000000; --part: #ffd000; --part-soft: #000000;
-  --side: #000000; --side-text: #ffffff; --focus: #00ffff; --code-bg: #000000; --series: #ffff00; color-scheme: dark;
+  --side: #000000; --side-text: #ffffff; --focus: #00ffff; --code-bg: #000000; --series: #ffff00; --st-exc: #3ff23f; --st-good: #b4ff6b; --st-dev: #ffff00; --st-imp: #ffb000; --st-pri: #ff6b6b; color-scheme: dark;
 }
 
 /* ---------- base ---------- */
@@ -522,6 +523,50 @@ pre.code {
 @media (max-width: 820px) {
   .dash-grid { grid-template-columns: 1fr; }
   .hbars li { grid-template-columns: minmax(0, 1fr) 70px 3.4rem; }
+}
+
+/* ---------- prontidão: status, destaque, acertos/erros e plano de estudo ---------- */
+.st-exc { --st: var(--st-exc); } .st-good { --st: var(--st-good); } .st-dev { --st: var(--st-dev); }
+.st-imp { --st: var(--st-imp); } .st-pri { --st: var(--st-pri); } .st-none { --st: var(--line-2); }
+.hb-f[class*="st-"] { background: var(--st); }
+.chip { display: inline-flex; align-items: center; gap: .35rem; font-size: .78rem; font-weight: 600; color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: .05rem .55rem; white-space: nowrap; }
+.chip i { width: .65rem; height: .65rem; border-radius: 50%; background: var(--st); display: inline-block; }
+.chip.st-none { color: var(--muted); font-weight: 400; }
+.legend { display: flex; flex-wrap: wrap; gap: .35rem .5rem; margin-top: .5rem; }
+.legend .lg { display: inline-flex; align-items: center; gap: .35rem; }
+.sw { width: .8rem; height: .8rem; border-radius: 3px; display: inline-block; }
+.dash .card.hero { display: grid; grid-template-columns: minmax(220px, 1fr) 1.4fr; gap: 1.25rem; align-items: start; }
+.hero-v { font-size: 3.2rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; margin: .2rem 0 .4rem; }
+.hero-main p { margin: .6rem 0 0; }
+.hero-side h2 { font-size: 1.05rem; }
+.sched { padding: .5rem .75rem; border-radius: 6px; background: var(--bg-2); border-left: 4px solid var(--st-dev); }
+.sched.ok { border-left-color: var(--st-exc); }
+.checks { list-style: none; padding: 0; margin: .5rem 0; }
+.checks li { padding: .15rem 0; }
+.checks li.ok span:first-child { color: var(--ok); font-weight: 700; }
+.checks li.no span:first-child { color: var(--bad); font-weight: 700; }
+.kpi-txt { font-size: 1.05rem; font-weight: 700; line-height: 1.3; display: block; overflow-wrap: anywhere; }
+.rw-t { height: 12px; display: flex; gap: 2px; border-radius: 6px; overflow: hidden; background: var(--bg-2); }
+.rw-ok { background: var(--ok); } .rw-bad { background: var(--bad); }
+.rw-t span:first-child { border-radius: 4px 0 0 4px; } .rw-t span:last-child { border-radius: 0 4px 4px 0; }
+.hbars.rw li { grid-template-columns: minmax(0, 1.2fr) minmax(80px, 1.4fr) 4.6rem; }
+.rw-v { text-align: right; font-variant-numeric: tabular-nums; font-size: .85rem; }
+.rw-total .hb-l { font-weight: 700; }
+.tp-cols { display: grid; grid-template-columns: 1fr; gap: .25rem; }
+.tp-cols h3 { font-size: .9rem; margin: .4rem 0 0; }
+.plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: .5rem; }
+.plan { border: 1px solid var(--line); border-top: 4px solid var(--st); border-radius: 8px; padding: .6rem .8rem; }
+.plan h3 { font-size: .95rem; margin: 0 0 .3rem; }
+.plan ul { margin: 0; padding-left: 1.1rem; }
+.plan li { margin-bottom: .3rem; }
+.delta { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.method ul { padding-left: 1.2rem; margin: .5rem 0; }
+.method li { margin-bottom: .35rem; }
+.dash > .tview.method { margin: 0 0 1rem; }
+.dash-grid { margin-bottom: 1rem; }
+@media (max-width: 820px) {
+  .dash .card.hero, .plan-grid { grid-template-columns: 1fr; }
+  .hero-v { font-size: 2.6rem; }
 }
 
 </style>
@@ -1879,8 +1924,249 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
         trend: done.map(function (a) {
           return { id: a.id, at: a.finishedAt, pct: a.result.pct, bankId: a.bankId, mode: a.mode, lang: a.lang === 'en' ? 'en' : 'pt', elapsedMs: a.elapsedMs || 0 };
         }),
+        analysis: GHX.Progress.analyze(done, banks, cert),
       };
     },
+  };
+
+  // ---------- prontidão por domínio e subtema ----------
+  //
+  // Critérios internos de acompanhamento (não são parâmetros oficiais da certificação):
+  // - acerto = questão totalmente correta; parcial conta como erro;
+  // - no modo exame, toda questão da tentativa foi avaliada (sem resposta = erro);
+  //   no modo estudo, só as questões respondidas;
+  // - o indicador principal usa a primeira avaliação de cada questão; as repetições
+  //   (refazer o mesmo simulado) mostram a evolução, sem contar como evidência nova.
+
+  var BANDS = [
+    { min: 90, key: 'exc', label: 'Excelente domínio' },
+    { min: 80, key: 'good', label: 'Bom domínio' },
+    { min: 70, key: 'dev', label: 'Em desenvolvimento' },
+    { min: 60, key: 'imp', label: 'Precisa melhorar' },
+    { min: -1, key: 'pri', label: 'Prioridade de estudo' },
+  ];
+  var READY = [
+    { min: 90, key: 'exc', label: 'Preparação elevada' },
+    { min: 80, key: 'good', label: 'Boa preparação' },
+    { min: 70, key: 'dev', label: 'Preparação intermediária' },
+    { min: 60, key: 'imp', label: 'Necessita reforço' },
+    { min: -1, key: 'pri', label: 'Preparação insuficiente' },
+  ];
+  var MIN_DOMAIN = 10;   // questões avaliadas por domínio para considerar a amostra suficiente
+  var MIN_TOPIC = 5;     // questões avaliadas para classificar um subtema
+  var SCHEDULE = { readiness: 85, domainFloor: 75 };
+
+  function band(list, pct) {
+    if (pct == null) return null;
+    for (var i = 0; i < list.length; i++) if (pct >= list[i].min) return list[i];
+    return list[list.length - 1];
+  }
+
+  // Subtemas a partir dos links de documentação oficial cadastrados em cada questão (ref).
+  // Links genéricos (guia de estudo) não definem subtema.
+  var TOPICS = [
+    ['Princípios de IA responsável', ['RAI', 'RAI6']],
+    ['Riscos e limitações da IA', ['RAI_RISKS']],
+    ['Técnicas de prompt', ['PE', 'PROMPT_DOCS']],
+    ['Fluxo de dados do prompt', ['FLOW']],
+    ['Tratamento e retenção de dados', ['DATA']],
+    ['Casos de uso de produtividade', ['USECASES']],
+    ['Testes com o Copilot', ['TESTS']],
+    ['Planos do Copilot', ['PLANS', 'LEARN_PLANS']],
+    ['Content exclusion', ['CE_HOW', 'CE_ABOUT']],
+    ['Copilot CLI', ['CLI_INSTALL', 'CLI_USE', 'CLI_REF', 'CLI_TOOLS']],
+    ['Custom instructions', ['INSTR']],
+    ['Prompt files', ['PROMPT_FILES']],
+    ['Copilot Chat', ['CHEAT', 'VS_CHAT']],
+    ['Sugestões inline e editor', ['VS_INLINE', 'VS_OVERVIEW']],
+    ['Audit log', ['AUDIT']],
+    ['REST API de licenças', ['API']],
+    ['Código público, code referencing e IP indemnity', ['CODEREF', 'FIND_MATCH', 'LEARN_PROTECT']],
+    ['Políticas', ['POLICIES', 'ORG_POLICIES']],
+    ['Copilot code review', ['REVIEW']],
+    ['Resumos de pull request', ['PR_SUMMARY', 'PR_SUMMARY_RAI']],
+    ['Copilot Spaces', ['SPACES']],
+    ['Model Context Protocol (MCP)', ['VS_MCP']],
+    ['Agentes personalizados e modo agente', ['VS_AGENTS']],
+    ['Copilot cloud agent', ['CLOUD_ABOUT', 'CLOUD_RISKS']],
+    ['Agent skills', ['SKILLS']],
+    ['Hooks', ['HOOKS']],
+    ['Métricas de uso', ['METRICS']],
+    ['Termos de uso', ['TERMS']],
+    ['Solução de problemas', ['LEARN_TROUBLE']],
+    ['GitHub Spark', ['SPARK']],
+  ];
+  var topicByUrl = null;
+  function topicsOf(it) {
+    if (!topicByUrl) {
+      topicByUrl = {};
+      var R = GHX.REF || {};
+      TOPICS.forEach(function (t) { t[1].forEach(function (k) { if (R[k]) topicByUrl[R[k]] = t[0]; }); });
+    }
+    var out = [];
+    (it.ref || []).forEach(function (u) { var t = topicByUrl[u]; if (t && out.indexOf(t) < 0) out.push(t); });
+    return out;
+  }
+
+  // Questões avaliadas em uma tentativa finalizada: [{ id, d, score }].
+  function evaluated(a) {
+    var answers = a.answers || {};
+    return (a.result.items || []).filter(function (r) {
+      var it = GHX.getItem(r.id);
+      if (!it) return false;
+      return a.mode !== 'study' || GHX.Scoring.isAnswered(it, answers[r.id]);
+    });
+  }
+
+  function stat(list) {
+    var n = list.length, correct = 0, partial = 0;
+    list.forEach(function (s) { if (s === 1) correct++; else if (s > 0) partial++; });
+    return { n: n, correct: correct, partial: partial, wrong: n - correct, pct: n ? round1((correct / n) * 100) : null };
+  }
+
+  // Pesos: distribuição configurada nos simulados (questões por domínio / total).
+  function weights(banks, cert) {
+    var w = {}, total = 0;
+    cert.domains.forEach(function (dm) { w[dm.d] = 0; });
+    banks.forEach(function (b) { GHX.bankItems(b).forEach(function (it) { if (it.d in w) { w[it.d]++; total++; } }); });
+    cert.domains.forEach(function (dm) { w[dm.d] = total ? w[dm.d] / total : 1 / cert.domains.length; });
+    return w;
+  }
+
+  function readinessOf(byDomain, w, cert) {
+    var sum = 0, wsum = 0, cov = 0;
+    cert.domains.forEach(function (dm) {
+      var s = byDomain[dm.d];
+      if (!s || !s.n) return;
+      cov++;
+      sum += w[dm.d] * (s.correct / s.n);
+      wsum += w[dm.d];
+    });
+    return { pct: wsum ? round1((sum / wsum) * 100) : null, coverage: cov };
+  }
+
+  GHX.Progress.BANDS = BANDS;
+  GHX.Progress.READY = READY;
+  GHX.Progress.MIN_DOMAIN = MIN_DOMAIN;
+  GHX.Progress.MIN_TOPIC = MIN_TOPIC;
+  GHX.Progress.topicsOf = topicsOf;
+
+  GHX.Progress.analyze = function (done, banks, cert) {
+    cert = cert || GHX.CERTS['GH-300'];
+    var w = weights(banks, cert);
+    var first = {}, latest = {}, evals = {};
+    var timeline = [];
+    var domAttempts = {};
+    cert.domains.forEach(function (dm) { domAttempts[dm.d] = 0; });
+
+    done.forEach(function (a) {
+      var seenD = {};
+      evaluated(a).forEach(function (r) {
+        if (!(r.id in first)) first[r.id] = r.score;
+        latest[r.id] = r.score;
+        evals[r.id] = (evals[r.id] || 0) + 1;
+        seenD[r.d] = 1;
+      });
+      Object.keys(seenD).forEach(function (d) { if (d in domAttempts) domAttempts[d]++; });
+      // Evolução: prontidão com as primeiras avaliações acumuladas até esta tentativa.
+      var byD = {};
+      Object.keys(first).forEach(function (id) {
+        var d = GHX.getItem(id).d;
+        (byD[d] = byD[d] || []).push(first[id]);
+      });
+      var acc = {};
+      Object.keys(byD).forEach(function (d) { acc[d] = stat(byD[d]); });
+      var r = readinessOf(acc, w, cert);
+      timeline.push({ id: a.id, at: a.finishedAt, bankId: a.bankId, readiness: r.pct, coverage: r.coverage, attemptPct: a.result.pct });
+    });
+
+    var ids = Object.keys(first);
+    var group = function (keyFn) {
+      var g = {};
+      ids.forEach(function (id) {
+        keyFn(GHX.getItem(id)).forEach(function (k) {
+          var x = g[k] || (g[k] = { first: [], latest: [], repeated: 0 });
+          x.first.push(first[id]);
+          x.latest.push(latest[id]);
+          if (evals[id] > 1) x.repeated++;
+        });
+      });
+      return g;
+    };
+    var withTrend = function (x) {
+      var s = stat(x.first), l = stat(x.latest);
+      s.latestPct = l.pct;
+      s.repeated = x.repeated;
+      s.delta = x.repeated ? round1(l.pct - s.pct) : null;
+      return s;
+    };
+
+    var gd = group(function (it) { return [it.d]; });
+    var domains = cert.domains.map(function (dm) {
+      var s = gd[dm.d] ? withTrend(gd[dm.d]) : { n: 0, correct: 0, partial: 0, wrong: 0, pct: null, latestPct: null, repeated: 0, delta: null };
+      s.d = dm.d; s.name = dm.name; s.short = dm.short;
+      s.weight = w[dm.d];
+      s.attempts = domAttempts[dm.d];
+      s.status = band(BANDS, s.pct);
+      s.enough = s.n >= MIN_DOMAIN;
+      return s;
+    });
+    var byDomain = {};
+    domains.forEach(function (s) { byDomain[s.d] = s; });
+    var r = readinessOf(byDomain, w, cert);
+
+    var gt = group(topicsOf);
+    var topics = Object.keys(gt).map(function (name) {
+      var s = withTrend(gt[name]);
+      s.name = name;
+      s.enough = s.n >= MIN_TOPIC;
+      s.status = s.enough ? band(BANDS, s.pct) : null;
+      // Domínio predominante do subtema, para pesar a relevância na prova.
+      var cnt = {};
+      ids.forEach(function (id) { var it = GHX.getItem(id); if (topicsOf(it).indexOf(name) >= 0) cnt[it.d] = (cnt[it.d] || 0) + 1; });
+      s.d = +Object.keys(cnt).sort(function (x, y) { return cnt[y] - cnt[x]; })[0];
+      s.weight = w[s.d] || 0;
+      return s;
+    });
+
+    var all = stat(ids.map(function (id) { return first[id]; }));
+    var ready = band(READY, r.pct);
+    var checks = [
+      { ok: r.pct != null && r.pct >= SCHEDULE.readiness, label: 'Preparação estimada de ' + SCHEDULE.readiness + '% ou mais' },
+      { ok: r.coverage === cert.domains.length, label: 'Os ' + cert.domains.length + ' domínios avaliados' },
+      { ok: r.coverage === cert.domains.length && domains.every(function (s) { return s.pct >= SCHEDULE.domainFloor; }), label: 'Nenhum domínio abaixo de ' + SCHEDULE.domainFloor + '%' },
+      { ok: domains.every(function (s) { return s.enough; }), label: 'Pelo menos ' + MIN_DOMAIN + ' questões avaliadas em cada domínio' },
+    ];
+
+    // O que estudar: subtemas classificados e domínios avaliados, por faixa e pelos critérios em ordem.
+    var cand = topics.filter(function (s) { return s.enough; }).map(function (s) { return { kind: 'topic', name: s.name, s: s }; })
+      .concat(domains.filter(function (s) { return s.n >= MIN_TOPIC; }).map(function (s) { return { kind: 'domain', name: 'Domínio ' + s.d + ' · ' + s.short, s: s }; }));
+    cand.sort(function (x, y) {
+      return (x.s.pct - y.s.pct) || (y.s.weight - x.s.weight) || (y.s.wrong - x.s.wrong) || (y.s.n - x.s.n) || ((x.s.delta || 0) - (y.s.delta || 0));
+    });
+    var plan = {
+      high: cand.filter(function (c) { return c.s.pct < 70; }),
+      mid: cand.filter(function (c) { return c.s.pct >= 70 && c.s.pct < 85; }),
+      good: cand.filter(function (c) { return c.s.pct >= 85; }).reverse(),
+    };
+    var focus = (plan.high.concat(plan.mid).filter(function (c) { return c.kind === 'topic'; })[0]) || plan.high[0] || plan.mid[0] || null;
+
+    return {
+      readiness: r.pct,
+      coverage: r.coverage,
+      domainsTotal: cert.domains.length,
+      partial: r.coverage < cert.domains.length,
+      ready: ready,
+      schedule: { ok: checks.every(function (c) { return c.ok; }), checks: checks },
+      overall: all,
+      evaluations: Object.keys(evals).reduce(function (n, id) { return n + evals[id]; }, 0),
+      repeatedQuestions: ids.filter(function (id) { return evals[id] > 1; }).length,
+      domains: domains,
+      topics: topics.sort(function (x, y) { return (y.pct - x.pct) || (y.n - x.n); }),
+      timeline: timeline,
+      plan: plan,
+      focus: focus,
+    };
   };
 })();
 
@@ -21986,9 +22272,10 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
 ;
 /* ---- src/ui/dashboard.js ---- */
-// Painel de progresso: indicadores, evolução das tentativas, desempenho por domínio,
-// situação de cada simulado e histórico. Gera HTML em string (testável no Node);
-// os gráficos são SVG inline com as cores do tema e dicas ao passar o mouse ([data-tip]).
+// Painel de progresso e prontidão para a GH-300: preparação estimada, desempenho por
+// domínio e por subtema, acertos e erros, evolução, recomendações de estudo e histórico.
+// Gera HTML em string (testável no Node); os gráficos são SVG/HTML com as cores do tema
+// e dicas ao passar o mouse ([data-tip]). Os cálculos ficam em core/progress.js.
 var GHX = globalThis.GHX || (globalThis.GHX = {});
 
 (function () {
@@ -21996,30 +22283,38 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   var LEVELS = ['Iniciante', 'Intermediário', 'Avançado'];
 
   function pct(x) { return x == null ? '—' : String(x).replace('.', ',') + '%'; }
+  function num(x) { return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
   function dateShort(ms) { return new Date(ms).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); }
   function dateLong(ms) {
     var d = new Date(ms);
     return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
-  function duration(ms) {
-    var m = Math.round(ms / 60000), h = Math.floor(m / 60);
-    return h ? h + ' h ' + (m % 60) + ' min' : m + ' min';
-  }
   function bankTitle(id) { var b = GHX.getBank(id); return b ? b.title : id; }
+  function shortTitle(id) { return bankTitle(id).replace(/ — .*/, ''); }
   function langLabel(l) { return l === 'en' ? 'English' : 'Português'; }
   function modeLabel(m) { return m === 'study' ? 'estudo' : 'exame'; }
+  function delta(x) {
+    if (x == null) return '<span class="muted">—</span>';
+    var sign = x > 0 ? '▲ +' : x < 0 ? '▼ ' : '■ ';
+    return '<span class="delta">' + sign + String(x).replace('.', ',') + ' p.p.</span>';
+  }
 
-  function tile(label, value, note) {
-    return '<div class="kpi"><div class="kpi-l">' + esc(label) + '</div><div class="kpi-v">' + value + '</div>' +
+  // Selo de status: cor + rótulo (nunca só a cor).
+  function chip(st, fallback) {
+    if (!st) return '<span class="chip st-none">' + esc(fallback || 'Não avaliado') + '</span>';
+    return '<span class="chip st-' + st.key + '"><i aria-hidden="true"></i>' + esc(st.label) + '</span>';
+  }
+
+  function tile(label, value, note, cls) {
+    return '<div class="kpi' + (cls ? ' ' + cls : '') + '"><div class="kpi-l">' + esc(label) + '</div><div class="kpi-v">' + value + '</div>' +
       (note ? '<div class="kpi-n">' + note + '</div>' : '') + '</div>';
   }
 
-  // Evolução do aproveitamento: uma série, eixo 0–100%, marcador em cada tentativa.
-  function trendChart(trend) {
-    if (!trend.length) return '<p class="muted">Termine um simulado para ver a evolução.</p>';
+  // Linha única, eixo 0–100%, marcador por ponto e dica com detalhes.
+  function lineChart(points, label) {
+    if (!points.length) return '<p class="muted">Ainda sem dados para a evolução.</p>';
     var W = 640, H = 240, L = 40, Rt = 16, T = 14, B = 34;
-    var iw = W - L - Rt, ih = H - T - B;
-    var n = trend.length;
+    var iw = W - L - Rt, ih = H - T - B, n = points.length;
     var x = function (i) { return L + (n === 1 ? iw / 2 : (i * iw) / (n - 1)); };
     var y = function (v) { return T + ih - (v / 100) * ih; };
     var grid = [0, 25, 50, 75, 100].map(function (v) {
@@ -22027,36 +22322,130 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
         '<text class="ch-ax" x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '%</text>';
     }).join('');
     var step = Math.max(1, Math.ceil(n / 8));
-    var xl = trend.map(function (p, i) {
+    var xl = points.map(function (p, i) {
       return i % step && i !== n - 1 ? '' : '<text class="ch-ax" x="' + x(i) + '" y="' + (H - 12) + '" text-anchor="middle">' + dateShort(p.at) + '</text>';
     }).join('');
-    var path = trend.map(function (p, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.pct).toFixed(1); }).join(' ');
+    var path = points.map(function (p, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.v).toFixed(1); }).join(' ');
     var colW = n === 1 ? iw : iw / (n - 1);
-    var pts = trend.map(function (p, i) {
-      var tip = bankTitle(p.bankId) + ' · ' + pct(p.pct) + ' · ' + dateLong(p.at) + ' · ' + modeLabel(p.mode) + ' · ' + langLabel(p.lang);
-      return '<g class="ch-pt" data-tip="' + esc(tip) + '" tabindex="0" role="img" aria-label="' + esc(tip) + '">' +
+    var pts = points.map(function (p, i) {
+      return '<g class="ch-pt" data-tip="' + esc(p.tip) + '" tabindex="0" role="img" aria-label="' + esc(p.tip) + '">' +
         '<rect class="ch-hit" x="' + (x(i) - colW / 2).toFixed(1) + '" y="' + T + '" width="' + colW.toFixed(1) + '" height="' + ih + '"/>' +
         '<line class="ch-cross" x1="' + x(i).toFixed(1) + '" x2="' + x(i).toFixed(1) + '" y1="' + T + '" y2="' + (T + ih) + '"/>' +
-        '<circle class="ch-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(p.pct).toFixed(1) + '" r="4.5"/></g>';
+        '<circle class="ch-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="4.5"/></g>';
     }).join('');
-    var lastP = trend[n - 1];
-    var lastLabel = '<text class="ch-lbl" x="' + Math.min(x(n - 1), W - Rt - 4) + '" y="' + (y(lastP.pct) - 10) + '" text-anchor="' + (n > 1 ? 'end' : 'middle') + '">' + pct(lastP.pct) + '</text>';
-    return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="group" aria-label="Aproveitamento por tentativa, em ordem cronológica">' +
+    var last = points[n - 1];
+    var lastLabel = '<text class="ch-lbl" x="' + Math.min(x(n - 1), W - Rt - 4) + '" y="' + (y(last.v) - 10) + '" text-anchor="' + (n > 1 ? 'end' : 'middle') + '">' + pct(last.v) + '</text>';
+    return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="group" aria-label="' + esc(label) + '">' +
       grid + xl + (n > 1 ? '<path class="ch-line" d="' + path + '"/>' : '') + pts + lastLabel + '</svg>';
   }
 
-  // Desempenho por domínio: barras horizontais ordenadas do maior para o menor.
-  function domainBars(domains, weakest) {
-    var rows = domains.filter(function (d) { return d.pct != null; }).slice().sort(function (a, b) { return b.pct - a.pct; });
-    if (!rows.length) return '<p class="muted">Ainda sem dados por domínio.</p>';
-    return '<ul class="hbars">' + rows.map(function (d) {
-      var weak = weakest && weakest.d === d.d;
-      var tip = 'Domínio ' + d.d + ' · ' + d.name + ' · ' + pct(d.pct) + ' (' + (Math.round(d.score * 10) / 10) + ' de ' + d.max + ' pontos)';
-      return '<li data-tip="' + esc(tip) + '" tabindex="0">' +
-        '<span class="hb-l">' + d.d + '. ' + esc(d.short) + (weak ? ' <span class="tag">mais fraco</span>' : '') + '</span>' +
-        '<span class="hb-t" aria-hidden="true"><span class="hb-f" style="width:' + Math.max(d.pct, 1) + '%"></span></span>' +
-        '<span class="hb-v">' + pct(d.pct) + '</span></li>';
-    }).join('') + '</ul>';
+  // Barra horizontal com cor do status e rótulo de texto.
+  function statusBar(name, s, extra) {
+    var tip = name + ' · ' + pct(s.pct) + ' (' + s.correct + ' de ' + s.n + ' questões)' + (s.status ? ' · ' + s.status.label : '');
+    return '<li data-tip="' + esc(tip) + '" tabindex="0">' +
+      '<span class="hb-l">' + esc(name) + (extra || '') + '</span>' +
+      '<span class="hb-t" aria-hidden="true">' + (s.pct != null ? '<span class="hb-f st-' + (s.status ? s.status.key : 'none') + '" style="width:' + Math.max(s.pct, 1) + '%"></span>' : '') + '</span>' +
+      '<span class="hb-v">' + pct(s.pct) + '</span></li>';
+  }
+
+  // Gráfico 1: desempenho por domínio, na ordem oficial.
+  function domainChart(an) {
+    return '<ul class="hbars">' + an.domains.map(function (s) {
+      if (!s.n) {
+        return '<li><span class="hb-l">' + s.d + '. ' + esc(s.short) + '</span><span class="hb-t" aria-hidden="true"></span><span class="hb-v small muted">Não avaliado</span></li>';
+      }
+      return statusBar(s.d + '. ' + s.short, s, ' <span class="small muted">· ' + s.n + ' questões</span>');
+    }).join('') + '</ul>' +
+      '<div class="legend small" aria-hidden="true">' + GHX.Progress.BANDS.map(function (b) { return chip(b); }).join('') + '</div>';
+  }
+
+  function domainTable(an) {
+    return '<details class="tview"><summary>Ver detalhes por domínio</summary><div class="rv-wrap"><table class="dom-table"><thead><tr>' +
+      '<th>Domínio</th><th class="num">Peso</th><th class="num">Questões</th><th class="num">Acertos</th><th class="num">Erros</th><th class="num">Desempenho</th><th class="num">Simulados</th><th>Evolução</th><th>Status</th></tr></thead><tbody>' +
+      an.domains.map(function (s) {
+        return '<tr><td>' + s.d + '. ' + esc(s.name) + '</td><td class="num">' + Math.round(s.weight * 60) + '/60</td><td class="num">' + s.n + '</td><td class="num">' + s.correct + '</td><td class="num">' + s.wrong +
+          (s.partial ? ' <span class="small muted">(' + s.partial + (s.partial > 1 ? ' parciais' : ' parcial') + ')</span>' : '') + '</td><td class="num"><strong>' + pct(s.pct) + '</strong></td><td class="num">' + s.attempts + '</td>' +
+          '<td>' + (s.delta != null ? delta(s.delta) + ' <span class="small muted">em ' + s.repeated + ' repetidas</span>' : '<span class="small muted">sem repetições</span>') + '</td><td>' + chip(s.status) + '</td></tr>';
+      }).join('') + '</tbody></table></div></details>';
+  }
+
+  // Gráfico 3: acertos e erros, por domínio e no total (barras 100% empilhadas).
+  function rightWrong(an) {
+    var row = function (name, s, total) {
+      if (!s.n) return '';
+      var c = (s.correct / s.n) * 100;
+      var tip = name + ': ' + s.correct + ' corretas e ' + s.wrong + ' incorretas' + (s.partial ? ' (' + s.partial + (s.partial > 1 ? ' parciais' : ' parcial') + ')' : '');
+      return '<li class="' + (total ? 'rw-total' : '') + '" data-tip="' + esc(tip) + '" tabindex="0"><span class="hb-l">' + esc(name) + '</span>' +
+        '<span class="rw-t" aria-hidden="true">' + (s.correct ? '<span class="rw-ok" style="width:' + c + '%"></span>' : '') + (s.wrong ? '<span class="rw-bad" style="width:' + (100 - c) + '%"></span>' : '') + '</span>' +
+        '<span class="rw-v">' + s.correct + ' / ' + s.wrong + '</span></li>';
+    };
+    return '<div class="legend small"><span class="lg"><i class="sw rw-ok"></i>Corretas</span><span class="lg"><i class="sw rw-bad"></i>Incorretas (inclui parciais)</span></div>' +
+      '<ul class="hbars rw">' + row('Total', an.overall, true) + an.domains.map(function (s) { return row(s.d + '. ' + s.short, s); }).join('') + '</ul>';
+  }
+
+  // Gráfico 4: melhores e piores subtemas (só os com amostra suficiente).
+  function topicChart(an) {
+    var ok = an.topics.filter(function (t) { return t.enough; });
+    if (!ok.length) return '<p class="muted">Ainda não há subtema com pelo menos ' + GHX.Progress.MIN_TOPIC + ' questões avaliadas.</p>';
+    var best = ok.slice(0, 5);
+    var worst = ok.slice().reverse().filter(function (t) { return best.indexOf(t) < 0; }).slice(0, 5);
+    var list = function (ts) { return '<ul class="hbars">' + ts.map(function (t) { return statusBar(t.name, t, ' <span class="small muted">· ' + t.n + '</span>'); }).join('') + '</ul>'; };
+    return '<div class="tp-cols"><div><h3>Melhores resultados</h3>' + list(best) + '</div>' +
+      '<div><h3>Precisam de reforço</h3>' + (worst.length ? list(worst) : '<p class="muted small">Todos os subtemas avaliados já aparecem ao lado.</p>') + '</div></div>';
+  }
+
+  function topicTable(an) {
+    return '<details class="tview"><summary>Ver todos os subtemas (' + an.topics.length + ')</summary><div class="rv-wrap"><table class="dom-table"><thead><tr>' +
+      '<th>Subtema</th><th class="num">Questões</th><th class="num">Acertos</th><th class="num">Erros</th><th class="num">Desempenho</th><th>Evolução</th><th>Status</th></tr></thead><tbody>' +
+      an.topics.map(function (t) {
+        return '<tr><td>' + esc(t.name) + '</td><td class="num">' + t.n + '</td><td class="num">' + t.correct + '</td><td class="num">' + t.wrong + '</td><td class="num">' + pct(t.pct) + '</td>' +
+          '<td>' + delta(t.delta) + '</td><td>' + chip(t.status, 'Amostra insuficiente') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="small muted">O subtema vem dos links de documentação oficial de cada questão; uma questão pode tocar mais de um subtema. Subtemas com menos de ' + GHX.Progress.MIN_TOPIC + ' questões avaliadas não recebem status.</p></details>';
+  }
+
+  function studyPlan(an) {
+    var item = function (c) {
+      var s = c.s;
+      return '<li><strong>' + esc(c.name) + '</strong> — ' + pct(s.pct) + ' de acertos <span class="small muted">(' + s.wrong + ' erros em ' + s.n + ' questões' +
+        (s.delta != null ? '; evolução ' + String(s.delta).replace('.', ',') + ' p.p.' : '') + ')</span></li>';
+    };
+    var group = function (title, cls, list, empty) {
+      return '<div class="plan ' + cls + '"><h3>' + title + '</h3>' + (list.length ? '<ul>' + list.slice(0, 6).map(item).join('') + '</ul>' + (list.length > 6 ? '<p class="small muted">+ ' + (list.length - 6) + ' outros</p>' : '') : '<p class="small muted">' + empty + '</p>') + '</div>';
+    };
+    return '<div class="plan-grid">' +
+      group('Prioridade alta', 'st-pri', an.plan.high, 'Nenhum tema abaixo de 70%.') +
+      group('Prioridade média', 'st-dev', an.plan.mid, 'Nenhum tema entre 70% e 85%.') +
+      group('Bom desempenho', 'st-exc', an.plan.good, 'Ainda nenhum tema com 85% ou mais.') +
+      '</div><p class="small muted">Ordem dentro de cada grupo: menor percentual de acertos, maior peso do domínio na prova, mais erros, mais questões avaliadas e pior evolução recente. Só entram temas com pelo menos ' + GHX.Progress.MIN_TOPIC + ' questões avaliadas.</p>';
+  }
+
+  function readinessHero(an) {
+    var r = an.readiness;
+    var schedule = an.schedule.ok
+      ? '<p class="sched ok"><strong>Bom indicativo para agendar a GH-300.</strong></p>'
+      : '<p class="sched"><strong>Ainda não há evidência suficiente para agendar a prova.</strong></p>';
+    return '<section class="card hero"><div class="hero-main">' +
+      '<div class="kpi-l">Preparação estimada GH-300</div>' +
+      '<div class="hero-v" data-readiness="' + (r == null ? '' : r) + '">' + pct(r) + '</div>' +
+      '<div>' + (an.ready ? chip(an.ready) : chip(null, 'Sem dados')) + '</div>' +
+      '<p class="small">Cobertura: <strong>' + an.coverage + ' de ' + an.domainsTotal + ' domínios</strong> · ' + (an.partial ? 'Avaliação parcial' : 'Avaliação completa') +
+      ' · ' + num(an.overall.n) + ' questões avaliadas</p></div>' +
+      '<div class="hero-side"><h2>Recomendação para a prova</h2>' + schedule +
+      '<ul class="checks">' + an.schedule.checks.map(function (c) {
+        return '<li class="' + (c.ok ? 'ok' : 'no') + '"><span aria-hidden="true">' + (c.ok ? '✓' : '✗') + '</span> ' + esc(c.label) + '<span class="sr-only">' + (c.ok ? ' (atendido)' : ' (não atendido)') + '</span></li>';
+      }).join('') + '</ul>' +
+      '<p class="small muted">Critérios de estudo deste simulador, não garantia de aprovação.</p></div></section>';
+  }
+
+  function method(an) {
+    return '<details class="tview method"><summary>Como os indicadores são calculados</summary><ul class="small">' +
+      '<li><strong>Desempenho do domínio</strong> = acertos ÷ questões avaliadas × 100. Acerto é a questão totalmente correta; resposta parcial conta como erro (o relatório de cada simulado, que dá crédito parcial, pode mostrar um percentual maior).</li>' +
+      '<li><strong>Questões avaliadas:</strong> no modo exame, todas as questões da tentativa (sem resposta conta como erro); no modo estudo, só as respondidas.</li>' +
+      '<li><strong>Repetições:</strong> o indicador usa a <strong>primeira</strong> avaliação de cada questão. Refazer um simulado não conta a mesma questão de novo como evidência; a diferença entre a primeira e a última resposta aparece como evolução.</li>' +
+      '<li><strong>Preparação estimada</strong> = média dos domínios ponderada pela distribuição dos simulados (' + an.domains.map(function (s) { return 'D' + s.d + ' ' + Math.round(s.weight * 60) + '/60'; }).join(', ') + '). Domínios sem questões avaliadas ficam como "Não avaliado" e os pesos dos demais são renormalizados.</li>' +
+      '<li>Todos os simulados contam, de qualquer nível de dificuldade. Faixas de status e prontidão são critérios internos de acompanhamento; os pesos não são uma pontuação oficial, e a estimativa não prevê a nota da prova (escala de 1 a 1000, corte em 700).</li>' +
+      '</ul></details>';
   }
 
   function bankRows(perBank) {
@@ -22074,37 +22463,30 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     }).join('');
   }
 
-  function recommendations(s) {
-    var out = [];
-    if (s.weakest) out.push('Reforce o domínio <strong>' + s.weakest.d + ' · ' + esc(s.weakest.name) + '</strong> (' + pct(s.weakest.pct) + '): faça o Modo estudo e leia as explicações e a documentação das questões erradas.');
-    if (s.next) out.push((s.next.attempts ? 'Refaça' : 'Próximo simulado sugerido:') + ' <strong>' + esc(s.next.title) + '</strong>' + (s.next.attempts ? ', seu menor melhor resultado (' + pct(s.next.best) + ').' : '.'));
-    if (s.attempts && !s.byLang.en) out.push('Faça pelo menos um simulado em <strong>English</strong>: a prova oficial é em inglês e os termos aparecem como na documentação.');
-    if (s.attempts && !s.byMode.exam) out.push('Treine no <strong>Modo exame</strong>, com o cronômetro de 100 minutos, para medir o ritmo.');
-    return out.length ? '<ul class="recs">' + out.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' : '';
-  }
-
   GHX.Dashboard = {
     render: function (s) {
-      var head = '<header class="home-h"><div><h1>Painel de progresso</h1><p class="sub">Acompanhe seus resultados nos ' + s.banksTotal + ' simulados, em português e em inglês.</p></div>' +
+      var an = s.analysis;
+      var head = '<header class="home-h"><div><h1>Painel de progresso</h1><p class="sub">Sua preparação para a GH-300 a partir de todos os simulados concluídos, de qualquer nível.</p></div>' +
         '<div class="home-tools"><button class="btn" data-act="home" data-k="dash-home">Voltar ao início</button></div></header>';
       if (!s.attempts) {
-        return '<div class="home dash">' + head + '<section class="card empty-dash"><h2>Nenhum simulado finalizado ainda</h2>' +
-          '<p>Os indicadores aparecem depois que você terminar o primeiro simulado, no Modo exame ou no Modo estudo.</p>' + recommendations(s) +
+        return '<div class="home dash">' + head + '<section class="card empty-dash"><h2>Nenhum simulado concluído ainda</h2>' +
+          '<p>A preparação estimada, o desempenho por domínio e as recomendações aparecem a partir do primeiro simulado concluído, no Modo exame ou no Modo estudo. Não é preciso fazer todos os simulados.</p>' +
           '<div class="actions"><button class="btn primary" data-act="home" data-k="dash-start">Escolher um simulado</button></div></section></div>';
       }
+      var evaluatedDomains = an.domains.filter(function (d) { return d.n; }).length;
       var kpis = '<section class="kpis" aria-label="Indicadores">' +
-        tile('Simulados concluídos', s.banksDone + ' <span class="kpi-of">de ' + s.banksTotal + '</span>') +
-        tile('Tentativas', String(s.attempts), s.byMode.exam + ' exame · ' + s.byMode.study + ' estudo<br>' + s.byLang.pt + ' em português · ' + s.byLang.en + ' em inglês') +
-        tile('Média geral', pct(s.avg)) +
-        tile('Melhor resultado', pct(s.best.pct), esc(bankTitle(s.best.bankId).replace(/ — .*/, ''))) +
-        tile('Questões dominadas', s.mastered + ' <span class="kpi-of">de ' + s.itemsTotal + '</span>', 'acertadas por completo ao menos uma vez') +
-        tile('Tempo de prática', duration(s.timeMs), 'nas tentativas finalizadas') +
+        tile('Preparação estimada', pct(an.readiness), an.ready ? esc(an.ready.label) : 'Sem dados') +
+        tile('Acertos no geral', pct(an.overall.pct), num(an.overall.n) + ' questões avaliadas') +
+        tile('Simulados concluídos', s.banksDone + ' <span class="kpi-of">de ' + s.banksTotal + '</span>', s.attempts + ' tentativa' + (s.attempts > 1 ? 's' : '') + ' · ' + s.byLang.pt + ' em português · ' + s.byLang.en + ' em inglês') +
+        tile('Corretas e incorretas', num(an.overall.correct) + ' <span class="kpi-of">/ ' + num(an.overall.wrong) + '</span>', an.overall.partial ? an.overall.partial + (an.overall.partial > 1 ? ' parciais contadas' : ' parcial contada') + ' como incorreta' + (an.overall.partial > 1 ? 's' : '') : 'corretas / incorretas') +
+        tile('Domínios avaliados', evaluatedDomains + ' <span class="kpi-of">de ' + an.domainsTotal + '</span>', an.partial ? 'Avaliação parcial' : 'Avaliação completa') +
+        tile('Principal assunto a melhorar', an.focus ? '<span class="kpi-txt">' + esc(an.focus.name) + '</span>' : '<span class="kpi-txt">—</span>', an.focus ? pct(an.focus.s.pct) + ' de acertos em ' + an.focus.s.n + ' questões' : 'Sem tema com amostra suficiente') +
         '</section>';
-      var trendTable = '<details class="tview"><summary>Ver como tabela</summary><table class="dom-table"><thead><tr><th>Data</th><th>Simulado</th><th>Modo</th><th>Idioma</th><th class="num">Aproveitamento</th></tr></thead><tbody>' +
-        s.trend.map(function (p) { return '<tr><td>' + dateLong(p.at) + '</td><td>' + esc(bankTitle(p.bankId)) + '</td><td>' + modeLabel(p.mode) + '</td><td>' + langLabel(p.lang) + '</td><td class="num">' + pct(p.pct) + '</td></tr>'; }).join('') +
-        '</tbody></table></details>';
-      var domTable = '<details class="tview"><summary>Ver como tabela</summary><table class="dom-table"><thead><tr><th>Domínio</th><th class="num">Questões</th><th class="num">Pontos</th><th class="num">Aproveitamento</th></tr></thead><tbody>' +
-        s.domains.map(function (d) { return '<tr><td>' + d.d + '. ' + esc(d.name) + '</td><td class="num">' + d.max + '</td><td class="num">' + (Math.round(d.score * 10) / 10) + '</td><td class="num">' + pct(d.pct) + '</td></tr>'; }).join('') +
+      var evo = an.timeline.filter(function (p) { return p.readiness != null; }).map(function (p) {
+        return { at: p.at, v: p.readiness, tip: 'Após ' + bankTitle(p.bankId) + ' (' + dateLong(p.at) + '): preparação ' + pct(p.readiness) + ' · ' + p.coverage + ' de 6 domínios · tentativa ' + pct(p.attemptPct) };
+      });
+      var evoTable = '<details class="tview"><summary>Ver como tabela</summary><table class="dom-table"><thead><tr><th>Data</th><th>Simulado concluído</th><th class="num">Tentativa</th><th class="num">Preparação</th><th class="num">Cobertura</th></tr></thead><tbody>' +
+        an.timeline.map(function (p) { return '<tr><td>' + dateLong(p.at) + '</td><td>' + esc(bankTitle(p.bankId)) + '</td><td class="num">' + pct(p.attemptPct) + '</td><td class="num">' + pct(p.readiness) + '</td><td class="num">' + p.coverage + '/6</td></tr>'; }).join('') +
         '</tbody></table></details>';
       var hist = s.trend.slice().reverse();
       var histTable = '<table class="dom-table hist-table"><thead><tr><th>Data</th><th>Simulado</th><th>Modo</th><th>Idioma</th><th class="num">Tempo</th><th class="num">Aproveitamento</th><th></th></tr></thead><tbody>' +
@@ -22113,15 +22495,20 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
             '<td class="num">' + Math.round(p.elapsedMs / 60000) + ' min</td><td class="num"><strong>' + pct(p.pct) + '</strong></td>' +
             '<td><button class="link" data-act="report" data-id="' + esc(p.id) + '">Relatório</button></td></tr>';
         }).join('') + '</tbody></table>';
-      return '<div class="home dash">' + head + kpis +
+      return '<div class="home dash">' + head + readinessHero(an) + kpis +
         '<div class="dash-grid">' +
-        '<section class="card"><h2>Evolução do aproveitamento</h2><p class="sub small">Cada ponto é uma tentativa finalizada, em ordem cronológica.</p>' + trendChart(s.trend) + trendTable + '</section>' +
-        '<section class="card"><h2>Desempenho por domínio</h2><p class="sub small">Soma de todas as tentativas, com crédito parcial.</p>' + domainBars(s.domains, s.weakest) + domTable + '</section>' +
+        '<section class="card"><h2>Desempenho por domínio</h2><p class="sub small">Percentual de acertos nos seis domínios oficiais.</p>' + domainChart(an) + domainTable(an) + '</section>' +
+        '<section class="card"><h2>Evolução da preparação</h2><p class="sub small">Preparação estimada após cada simulado concluído.</p>' + lineChart(evo, 'Preparação estimada após cada simulado concluído') + evoTable + '</section>' +
         '</div>' +
-        '<section class="card"><h2>Recomendações</h2>' + recommendations(s) + '</section>' +
-        '<section class="card"><h2>Simulados por nível</h2><p class="sub small">Barra = melhor aproveitamento em cada simulado.</p>' + bankRows(s.perBank) + '</section>' +
+        '<div class="dash-grid">' +
+        '<section class="card"><h2>Acertos e erros</h2><p class="sub small">Questões corretas e incorretas, no total e por domínio.</p>' + rightWrong(an) + '</section>' +
+        '<section class="card"><h2>Desempenho por subtema</h2><p class="sub small">Assuntos com melhores e piores resultados.</p>' + topicChart(an) + topicTable(an) + '</section>' +
+        '</div>' +
+        '<section class="card study"><h2>O que devo estudar agora?</h2>' + studyPlan(an) + '</section>' +
+        '<section class="card"><h2>Simulados por nível</h2><p class="sub small">Barra = melhor aproveitamento em cada simulado (com crédito parcial).</p>' + bankRows(s.perBank) + '</section>' +
         '<section class="card"><h2>Histórico</h2><div class="rv-wrap">' + histTable + '</div></section>' +
-        '<p class="note-box small">O aproveitamento em % não equivale à nota oficial (escala de 1 a 1000, corte em 700); a conversão não é pública.</p>' +
+        method(an) +
+        '<p class="note-box small">A preparação estimada é um indicador de estudo, não uma previsão de aprovação. A prova real usa escala de 1 a 1000, com corte em 700, e a conversão não é pública.</p>' +
         '</div>';
     },
   };

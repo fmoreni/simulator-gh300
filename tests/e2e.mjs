@@ -550,19 +550,30 @@ async function run() {
   assert.match(await text('.dash h1'), /Painel de progresso/);
   assert.match(await text('.kpis'), /Simulados concluídos\s*2\s*de 12/);
   assert.match(await text('.kpis'), /1 em português · 1 em inglês/);
+  const an = await evaluate(`GHX.Progress.summary(GHX.App.store.history(), GHX.listBanks()).analysis`);
+  assert.equal(an.coverage, 6);
+  assert.equal(an.overall.n, 60 + 60, 'duas tentativas de exame em simulados diferentes');
+  assert.equal(await evaluate(`document.querySelector('[data-readiness]').getAttribute('data-readiness')`), String(an.readiness));
+  assert.match(await text('.hero'), /Cobertura: 6 de 6 domínios/);
+  assert.match(await text('.hero'), /Ainda não há evidência suficiente para agendar/);
   assert.equal(await evaluate(`document.querySelectorAll('.chart .ch-pt').length`), 2);
   assert.equal(await evaluate(`document.querySelectorAll('.hist-table tbody tr').length`), 2);
-  assert.ok(await evaluate(`document.querySelectorAll('.dash-grid .hbars li').length`) === 6);
+  assert.equal(await evaluate(`document.querySelectorAll('.dash-grid:first-of-type .hbars:first-of-type li').length`), 6);
+  assert.equal(await evaluate(`document.querySelectorAll('.hbars.rw li').length`), 7);
+  assert.ok(await evaluate(`document.querySelectorAll('.tp-cols .hbars li').length`) >= 2);
+  assert.match(await text('.study'), /Prioridade alta/);
   await evaluate(`document.querySelector('.ch-pt').dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))`);
-  assert.match(await evaluate(`(document.querySelector('.ch-tip:not([hidden])') || {}).textContent || ''`), /Simulado 04/);
+  assert.match(await evaluate(`(document.querySelector('.ch-tip:not([hidden])') || {}).textContent || ''`), /Após Simulado 04.*preparação/);
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: await evaluate('document.documentElement.scrollHeight'), deviceScaleFactor: 1, mobile: false });
   await shot('14-dashboard');
+  await cdp.send('Emulation.clearDeviceMetricsOverride');
   await click('.hist-table [data-act="report"]');
   await waitFor(`document.querySelector('.report')`);
   await click('[data-act="home"]');
   await waitFor(`document.querySelector('.home')`);
   assert.equal(await evaluate(`document.documentElement.lang`), 'pt-BR');
   await click('input[data-act="lang"][data-v="pt"]');
-  step('painel de progresso: indicadores, evolução com dica ao passar o mouse, domínios e histórico');
+  step('painel de progresso: preparação estimada, cobertura, domínios, acertos/erros, subtemas, plano de estudo e histórico');
 
   // Celular
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
