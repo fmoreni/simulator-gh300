@@ -18,6 +18,9 @@ export const BANKS = [
   'src/banks/s07.js',        // Simulado 07 — Avançado
   'src/banks/s08.js',        // Simulado 08 — Avançado
   'src/banks/s09.js',        // Simulado 09 — Avançado
+  'src/banks/s10.js',        // Simulado 10 — Iniciante
+  'src/banks/s11.js',        // Simulado 11 — Intermediário
+  'src/banks/s12.js',        // Simulado 12 — Avançado
   'src/banks/extensions.js',
 ];
 

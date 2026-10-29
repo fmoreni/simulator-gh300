@@ -334,13 +334,14 @@ test('storage: migração v1 → v2 e dados corrompidos', () => {
 const real = GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id));
 const FORMAT = GHX.CERTS['GH-300'].format;
 
-test('9 simulados de 60 questões: 3 por nível, 540 no total', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
-  assert.equal(real.length, 9);
+test('12 simulados de 60 questões: 4 por nível, 720 no total', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  assert.equal(real.length, 12);
   for (const level of ['Iniciante', 'Intermediário', 'Avançado']) {
-    assert.equal(real.filter((b) => b.level === level).length, 3, `nível ${level}`);
+    assert.equal(real.filter((b) => b.level === level).length, 4, `nível ${level}`);
   }
-  assert.equal(real.reduce((n, b) => n + GHX.bankItems(b).length, 0), 540);
-  assert.deepEqual(real.map((b) => b.title.slice(0, 11)), ['Simulado 01', 'Simulado 02', 'Simulado 03', 'Simulado 04', 'Simulado 05', 'Simulado 06', 'Simulado 07', 'Simulado 08', 'Simulado 09']);
+  assert.equal(real.reduce((n, b) => n + GHX.bankItems(b).length, 0), 720);
+  const expected = Array.from({ length: 12 }, (_, i) => 'Simulado ' + String(i + 1).padStart(2, '0'));
+  assert.deepEqual(real.map((b) => b.title.slice(0, 11)), expected);
 });
 
 test('formato GH-300: sem estudo de caso, sem série problema–solução, só os tipos do sandbox oficial', () => {

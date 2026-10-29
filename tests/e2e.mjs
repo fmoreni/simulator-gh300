@@ -296,13 +296,13 @@ async function run() {
 
   // Início
   for (const level of ['Iniciante', 'Intermediário', 'Avançado']) {
-    assert.equal(await evaluate(`document.querySelectorAll('[data-level="${level}"] .card.bank').length`), 3, level);
+    assert.equal(await evaluate(`document.querySelectorAll('[data-level="${level}"] .card.bank').length`), 4, level);
   }
-  assert.equal(await evaluate(`document.querySelectorAll('.card.bank').length`), 9);
+  assert.equal(await evaluate(`document.querySelectorAll('.card.bank').length`), 12);
   assert.match(await text('.home'), /700/);
   assert.match(await text('.home'), /sem estudo de caso/);
   await shot('01-home');
-  step('tela inicial com 9 simulados agrupados por nível e nota sobre a prova e a pontuação');
+  step('tela inicial com 12 simulados agrupados por nível e nota sobre a prova e a pontuação');
 
   // Pré-prova na sequência do sandbox oficial do GitHub
   await click('input[data-act="extra"]');
@@ -365,6 +365,9 @@ async function run() {
   // Responde a prova inteira; uma multi parcial, uma single errada; pausa e recarga no meio
   let id, partialDone = false, wrongDone = false, brk = false, reloaded = false;
   const skipped = [];
+  // A pausa trava a questão aberta; escolhe um ponto em que ela seja de escolha única.
+  const types = await evaluate(`GHX.App.ui.att.sections[0].items.map((id) => GHX.getItem(id).type)`);
+  const breakAt = types.findIndex((t, i) => i >= 8 && types[i + 1] === 'single');
   const seenTypes = new Set();
   for (let guard = 0; guard < 80; guard++) {
     if (await app('a.view') === 'review') break;
@@ -391,7 +394,7 @@ async function run() {
     }
 
     // Pausa: o relógio continua e as questões exibidas (inclusive a atual) travam
-    if (!brk && i === 10) {
+    if (!brk && i === breakAt) {
       brk = true;
       const shown = await curId();
       await click('[data-act="break"]');

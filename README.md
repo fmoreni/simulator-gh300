@@ -1,6 +1,6 @@
 # Simulador GH-300 — GitHub Copilot
 
-Simulador de provas para a certificação **GH-300: GitHub Copilot**. São **9 simulados com 60 questões cada (540 no total)**, divididos em três níveis, que reproduzem o fluxo da prova aplicada pela Pearson VUE. A moldura segue o [sandbox oficial das provas do GitHub](https://GHCertDemo.starttest.com).
+Simulador de provas para a certificação **GH-300: GitHub Copilot**. São **12 simulados com 60 questões cada (720 no total)**, quatro por nível de dificuldade, que reproduzem o fluxo da prova aplicada pela Pearson VUE. A moldura segue o [sandbox oficial das provas do GitHub](https://GHCertDemo.starttest.com).
 
 > Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. Todas as questões são originais e escritas a partir da documentação oficial; nenhuma vem de dumps ou de provas reais. O resultado aqui **não** prevê a nota oficial.
 
@@ -81,7 +81,7 @@ O simulador mostra o **aproveitamento em %**, com crédito parcial nos itens de 
 
 ---
 
-## Os 9 simulados
+## Os 12 simulados
 
 | Simulado | Nível | Foco |
 | --- | --- | --- |
@@ -94,17 +94,25 @@ O simulador mostra o **aproveitamento em %**, com crédito parcial nos itens de 
 | 07 | Avançado | Copilot cloud agent e seus controles, hooks, skills, políticas entre organizações e empresas, auditoria e subagentes |
 | 08 | Avançado | Copilot CLI a fundo (configuração, permissões, sessões, scripts e CI), MCP, gerenciamento de contexto e code review a fundo |
 | 09 | Avançado | Arquitetura e dados, métricas e impacto, IP indemnity e contratos, engenharia de prompts avançada e decisões de IA responsável |
+| 10 | Iniciante | Comandos e participantes do Chat, comandos básicos da CLI, Spaces, agentes, audit log, princípios de IA responsável, fluxo de dados, prompts, testes e código público |
+| 11 | Intermediário | CLI e REST API em cenários, políticas, code review, IA responsável no dia a dia, fluxo de dados, prompts com restrições, testes, segurança e diagnóstico de exclusões |
+| 12 | Avançado | Governança de agentes, hooks e MCP, licenças e métricas em escala, fluxo de dados e controles, engenharia de contexto, estratégia de testes e defesa em profundidade |
 
 Cada simulado tem **60 questões em 100 minutos**, distribuídas pelos pesos oficiais dos domínios (*Skills measured as of August 7, 2026*):
 
-| # | Domínio | Peso oficial | Por simulado | Total |
+| # | Domínio | Peso oficial | Por simulado | Total (720) |
 | --- | --- | --- | --- | --- |
-| 1 | Use GitHub Copilot responsibly | 15–20% | 10 | 90 |
-| 2 | Use GitHub Copilot features | 25–30% | 17 | 153 |
-| 3 | Understand GitHub Copilot data and architecture | 10–15% | 8 | 72 |
-| 4 | Apply prompt engineering and context crafting | 10–15% | 8 | 72 |
-| 5 | Improve developer productivity with GitHub Copilot | 10–15% | 8 | 72 |
-| 6 | Configure privacy, content exclusions, and safeguards | 10–15% | 9 | 81 |
+| 1 | Use GitHub Copilot responsibly | 15–20% | 10 | 120 |
+| 2 | Use GitHub Copilot features | 25–30% | 17 | 204 |
+| 3 | Understand GitHub Copilot data and architecture | 10–15% | 8 | 96 |
+| 4 | Apply prompt engineering and context crafting | 10–15% | 8 | 96 |
+| 5 | Improve developer productivity with GitHub Copilot | 10–15% | 8 | 96 |
+| 6 | Configure privacy, content exclusions, and safeguards | 10–15% | 9 | 108 |
+
+**Como os níveis são definidos:** os quatro simulados de cada nível cobrem os seis domínios, e o nível muda o tipo de raciocínio exigido:
+- **Iniciante:** reconhecer e entender conceitos e recursos.
+- **Intermediário:** aplicar em cenários do dia a dia.
+- **Avançado:** escolher entre alternativas próximas com várias restrições, e diagnosticar.
 
 Toda questão tem explicação, justificativa para cada alternativa (ou parte) e pelo menos um link para a documentação oficial (docs.github.com, learn.microsoft.com ou code.visualstudio.com).
 
@@ -131,7 +139,7 @@ O sandbox geral da Microsoft (`aka.ms/examdemo`) mostra estudos de caso, séries
 | Comando | O que faz |
 | --- | --- |
 | `npm run build` | Gera `dist/gh300-platform.html` (arquivo único, autocontido) e `dist/dev.html` (com doctype e charset, para testes locais) |
-| `npm test` | Testes de núcleo, de renderers e a validação estrutural dos 9 bancos (`node --test tests/`) |
+| `npm test` | Testes de núcleo, de renderers e a validação estrutural dos 12 bancos (`node --test tests/`) |
 | `npm run serve` | Serve `dist/` em http://localhost:8765 |
 | `npm run e2e` | Faz um simulado inteiro em Chrome headless via Chrome DevTools Protocol, com mouse, toque e teclado (sem Puppeteer/Playwright) |
 
@@ -156,6 +164,7 @@ src/
     practice-a.js     Simulado 01      practice-b.js   Simulado 02      s03.js   Simulado 03
     full-a.js         Simulado 04      full-b.js       Simulado 05      s06.js   Simulado 06
     s07.js            Simulado 07      s08.js          Simulado 08      s09.js   Simulado 09
+    s10.js            Simulado 10      s11.js          Simulado 11      s12.js   Simulado 12
     extensions.js     itens extras e correções sem editar os bancos
   ui/
     dnd.js            arrastar e soltar com Pointer Events, mais alternativa por teclado

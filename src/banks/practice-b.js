@@ -67,20 +67,6 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
         exp: 'Diferencie as instruções de repositório e pessoais (todos os planos) das instruções da organização (Business e Enterprise).',
         ref: [R.PLANS],
       },
-      {
-        id: 'pb-t4', d: 6, type: 'single',
-        q: 'A Tailspin Toys quer gerenciar content exclusion por um script que usa a REST API do GitHub. Quem pode gerenciar content exclusion pela REST API?',
-        o: ['Donos da organização e donos da empresa', 'Qualquer membro com licença do Copilot', 'Somente administradores de repositório', 'Somente o suporte do GitHub'],
-        a: 0,
-        why: [
-          '"Organization owners and enterprise owners can also manage content exclusions programmatically."',
-          'Membros comuns não configuram content exclusion.',
-          'Administradores de repositório configuram o próprio repositório pela interface.',
-          'Não é preciso acionar o suporte.',
-        ],
-        exp: 'Content exclusion pode ser configurado pela interface (repositório, organização, empresa) e pela REST API (organização e empresa).',
-        ref: [R.CE_HOW],
-      },
 
       // ---------- cenário: Adventure Works ----------
       {
@@ -210,58 +196,6 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
       // ---------- domínio 2 ----------
       {
-        id: 'pb-d2-1', d: 2, type: 'dropdown',
-        q: 'Complete a chamada que obtém os detalhes da licença e a atividade do usuário `mona` na organização `octo-org`, e o escopo de token suficiente para essa leitura.',
-        code: '[[m]] /orgs/octo-org/[[p]]/mona/copilot\n# escopo: [[s]]',
-        lists: { m: ['GET', 'POST', 'DELETE'], p: ['members', 'copilot/billing/seats', 'users'], s: ['read:org', 'repo', 'workflow'] },
-        a: { m: 0, p: 0, s: 0 },
-        why: {
-          m: 'É uma leitura: `GET`.',
-          p: 'O caminho é `/orgs/{org}/members/{username}/copilot`.',
-          s: 'Endpoints de leitura aceitam `manage_billing:copilot` ou `read:org`.',
-        },
-        exp: 'Endpoints que adicionam ou removem licenças exigem `manage_billing:copilot` ou `admin:org`. Só donos da organização podem usar esses endpoints.',
-        ref: [R.API],
-      },
-      {
-        id: 'pb-d2-2', d: 2, type: 'single',
-        q: 'Um script chama `DELETE /orgs/{org}/copilot/billing/selected_users` para um usuário cuja licença veio de uma equipe. Qual é o resultado?',
-        o: [
-          'A chamada retorna 422, porque a licença foi atribuída por uma equipe',
-          'A licença é cancelada imediatamente',
-          'A equipe inteira perde as licenças',
-          'O usuário é removido da organização',
-        ],
-        a: 0,
-        why: [
-          'Remover no nível do usuário retorna 422 se a licença veio de uma equipe.',
-          'Mesmo em remoções válidas, a licença fica como pending cancellation.',
-          'A chamada é por usuário.',
-          'A API gerencia licenças, não a participação na organização.',
-        ],
-        exp: 'Para licenças vindas de equipes, use `DELETE .../selected_teams` ou tire a pessoa da equipe.',
-        ref: [R.API],
-      },
-      {
-        id: 'pb-d2-3', d: 2, type: 'single',
-        q: 'O time de segurança precisa de um histórico de eventos do Copilot maior que a retenção do audit log. O que é recomendado?',
-        o: [
-          'Fazer streaming do audit log para um SIEM, já que o audit log retém eventos dos últimos 180 dias',
-          'Pedir ao Copilot Chat o histórico completo',
-          'Exportar `.github/copilot-instructions.md`',
-          'Usar `GET /orgs/{org}/copilot/billing/seats` todo dia',
-        ],
-        a: 0,
-        why: [
-          'A documentação recomenda o streaming para um SIEM, para histórico mais longo e alertas.',
-          'O Chat não tem esse histórico.',
-          'Não tem relação.',
-          'Mostra só o estado atual das licenças.',
-        ],
-        exp: 'O audit log retém eventos dos últimos 180 dias.',
-        ref: [R.AUDIT],
-      },
-      {
         id: 'pb-d2-4', d: 2, type: 'single',
         q: 'Um auditor quer ver no audit log os prompts que os desenvolvedores enviaram ao Copilot no IDE. O que acontece?',
         o: [
@@ -279,25 +213,6 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
         ],
         exp: 'Para capturar esses dados é preciso uma solução própria, como hooks que enviam eventos do Copilot CLI para um serviço de log.',
         ref: [R.AUDIT],
-      },
-      {
-        id: 'pb-d2-5', d: 2, type: 'single',
-        q: 'Uma empresa com Copilot Business quer que membros **sem** licença do Copilot recebam o Copilot code review. Qual afirmação está correta?',
-        o: [
-          'É possível só no GitHub.com, com as políticas necessárias habilitadas; a subpolítica vem desativada por padrão e o uso é cobrado como uso adicional',
-          'É possível em qualquer IDE, sem configuração',
-          'Não é possível em nenhum plano',
-          'É possível só no Copilot Free',
-        ],
-        a: 0,
-        why: [
-          'Disponível no GitHub.com, no Business e no Enterprise, com as políticas habilitadas por um administrador.',
-          'Não está disponível nos IDEs para quem não tem licença.',
-          'É possível no Business e no Enterprise.',
-          'Não se aplica ao Free.',
-        ],
-        exp: 'Exige a política de uso pago de créditos de IA e a subpolítica para membros sem licença, que vem desativada por padrão.',
-        ref: [R.REVIEW],
       },
       {
         id: 'pb-d2-6', d: 2, type: 'single',
@@ -465,25 +380,6 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
         },
         exp: 'References confirmam o contexto usado; "View matches" mostra as correspondências com código público quando elas são permitidas.',
         ref: [R.INSTR, R.FIND_MATCH],
-      },
-      {
-        id: 'pb-d6-3', d: 6, type: 'single',
-        q: 'Uma empresa configurou content exclusion no nível da empresa e uma das organizações dela também configurou regras próprias. A quem cada conjunto de regras se aplica?',
-        o: [
-          'As regras da empresa valem para todos os usuários do Copilot na empresa; as da organização, só para usuários com licença atribuída por ela',
-          'As regras da organização substituem as da empresa para todos',
-          'As regras da empresa só valem para repositórios públicos',
-          'Só o último conjunto salvo é aplicado',
-        ],
-        a: 0,
-        why: [
-          'Comportamento documentado para os níveis de empresa e de organização.',
-          'Não há substituição.',
-          'Não existe essa restrição.',
-          'Não é assim que as regras funcionam.',
-        ],
-        exp: 'No nível da empresa, configure em AI controls > Copilot > Content exclusion, com o mesmo formato do nível da organização.',
-        ref: [R.CE_HOW],
       },
       {
         id: 'pb-d6-4', d: 6, type: 'single',
@@ -775,6 +671,61 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
         why: ['"Block suggestions matching public code" aparece em todos os planos.', 'Não é exclusivo.', 'Não é exclusivo.', 'Não é exclusivo.'],
         exp: 'Para licenças de organização, a configuração é herdada da organização ou da empresa.',
         ref: [R.PLANS],
+      },
+
+      {
+        id: 's02-31', d: 2, type: 'single',
+        q: 'Você precisa de uma tarefa com várias etapas: alterar vários arquivos e rodar os testes. Qual forma de usar o Copilot é a mais indicada?',
+        o: ['Um agente (por exemplo, o modo agente no editor), que usa ferramentas para alterar arquivos e executar verificações', 'Só as sugestões inline, linha por linha', 'O filtro de código público', 'O audit log'],
+        a: 0,
+        why: ['Agentes trabalham a partir de um objetivo, usando ferramentas para editar e verificar.', 'Funciona, mas é lento para tarefas de várias etapas.', 'É uma salvaguarda, não uma forma de trabalho.', 'É um registro administrativo.'],
+        exp: 'Você define o objetivo, acompanha o trabalho e revisa o resultado.',
+        ref: [R.VS_OVERVIEW],
+      },
+      {
+        id: 's02-32', d: 2, type: 'single',
+        q: 'Onde são configuradas as regras de content exclusion do Copilot?',
+        o: ['No GitHub, nas configurações do repositório, da organização ou da empresa', 'No `settings.json` de cada IDE', 'No arquivo `.gitignore`', 'No `README.md`'],
+        a: 0,
+        why: ['Content exclusion é configurado no GitHub e chega aos IDEs automaticamente.', 'O `settings.json` controla preferências locais, não exclusões.', 'O `.gitignore` não é o mecanismo de exclusão do Copilot.', 'Não tem relação.'],
+        exp: 'Nos IDEs que já carregaram as configurações, a mudança pode levar até 30 minutos para valer.',
+        ref: [R.CE_HOW],
+      },
+      {
+        id: 's02-33', d: 2, type: 'single',
+        q: 'Você pediu ao Copilot CLI um script que apaga logs com mais de 30 dias. O que fazer antes de executá-lo?',
+        o: ['Ler o script e testá-lo em uma pasta de teste', 'Executar direto na pasta de produção', 'Executar com permissões de administrador', 'Pedir ao Copilot que execute sem mostrar o script'],
+        a: 0,
+        why: ['Scripts gerados precisam ser revisados, principalmente os que apagam arquivos.', 'Arriscado.', 'Amplia o risco.', 'Você perde a chance de revisar.'],
+        exp: 'Gerar scripts e gerenciar arquivos é um dos usos do Copilot CLI.',
+        ref: [R.CLI_USE, R.GUIDE],
+      },
+      {
+        id: 's02-34', d: 2, type: 'single',
+        q: 'Qual servidor MCP já vem configurado no Copilot CLI?',
+        o: ['O GitHub MCP server, que permite interagir com recursos do GitHub.com, como pull requests', 'Um servidor de banco de dados', 'Um servidor de e-mail', 'Nenhum; todo servidor precisa ser adicionado'],
+        a: 0,
+        why: ['"Copilot CLI comes with the GitHub MCP server already configured."', 'Não vem configurado.', 'Não vem configurado.', 'O GitHub MCP server já vem pronto.'],
+        exp: 'Outros servidores podem ser adicionados com `/mcp add`.',
+        ref: [R.CLI_USE],
+      },
+      {
+        id: 's02-35', d: 6, type: 'single',
+        q: 'O Copilot parou de sugerir código em todos os arquivos e projetos. Qual é uma das primeiras verificações?',
+        o: ['A conexão com a internet, porque o Copilot precisa dela para funcionar', 'As regras de content exclusion de um arquivo específico', 'A cor do tema do editor', 'O tamanho da fonte'],
+        a: 0,
+        why: ['Sem conexão estável, o Copilot não funciona.', 'Exclusões afetam arquivos específicos, não tudo.', 'Não tem relação.', 'Não tem relação.'],
+        exp: 'Outras verificações: atualizar a extensão e confirmar a compatibilidade do IDE.',
+        ref: [R.LEARN_TROUBLE],
+      },
+      {
+        id: 's02-36', d: 6, type: 'single',
+        q: 'O que acontece com as sugestões inline em um arquivo afetado por content exclusion?',
+        o: ['Não ficam disponíveis nesse arquivo', 'Aparecem normalmente', 'Aparecem só em comentários', 'Aparecem com um aviso de licença'],
+        a: 0,
+        why: ['"Inline suggestions will not be available in the affected files."', 'O arquivo está excluído.', 'Não é o comportamento.', 'Isso seria code referencing.'],
+        exp: 'O conteúdo do arquivo também não informa as respostas do Copilot.',
+        ref: [R.CE_ABOUT],
       },
     ],
   });
