@@ -37,7 +37,7 @@ Depois acesse **http://localhost:8765/dev.html**. O projeto não tem dependênci
 
 ### Passo a passo
 
-1. **Tela inicial.** Os simulados aparecem agrupados em **Iniciante**, **Intermediário** e **Avançado**. Cada cartão mostra o número de questões, o tempo, o formato e os tipos de item.
+1. **Tela inicial.** Os simulados aparecem agrupados em **Iniciante**, **Intermediário** e **Avançado**. Cada cartão mostra o número de questões, o tempo, o formato, os tipos de item e a situação (não iniciado, em andamento ou melhor resultado). As tentativas em andamento aparecem no topo, em **Continue de onde parou**.
    - Em **Idioma das questões**, escolha **Português** ou **English** antes de começar. Vale para as próximas tentativas; a tentativa em andamento mantém o idioma em que começou.
 2. **Escolha o modo:**
    - **Modo exame:** simula a prova real, com cronômetro de 100 minutos e sem respostas durante a prova. Se o inglês não for sua língua nativa, marque **"Acrescentar 30 minutos"** antes de começar, como a acomodação oficial.

@@ -44,6 +44,12 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     copilot: 'M7 9a5 5 0 0 1 10 0v1.5a2.5 2.5 0 0 1 2 2.5v2a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-2a2.5 2.5 0 0 1 2-2.5V9zM9.5 14v1.5M14.5 14v1.5',
     list: 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01',
     info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5h.01',
+    play: 'M7 4.5v15l12-7.5-12-7.5z',
+    sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+    globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z',
+    shuffle: 'M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5',
+    trash: 'M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3',
+    doc: 'M6 3h9l5 5v13H6zM14 3v6h6M9 13h7M9 17h7',
   };
   function icon(name, cls) {
     return '<svg class="pd-ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + ICON[name] + '"/></svg>';
@@ -418,6 +424,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   }
 
   GHX.Dashboard = {
+    icon: icon,
     render: function (s) {
       var an = s.analysis;
       uid = 0;

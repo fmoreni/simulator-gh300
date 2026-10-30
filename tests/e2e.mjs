@@ -292,17 +292,34 @@ async function run() {
   await waitFor(`window.GHX && GHX.App`);
   await evaluate(`localStorage.clear(); location.reload()`);
   await sleep(300);
-  await waitFor(`window.GHX && GHX.App && document.querySelector('.home')`);
+  await waitFor(`window.GHX && GHX.App && document.querySelector('.start-screen')`);
 
   // Início
   for (const level of ['Iniciante', 'Intermediário', 'Avançado']) {
-    assert.equal(await evaluate(`document.querySelectorAll('[data-level="${level}"] .card.bank').length`), 5, level);
+    assert.equal(await evaluate(`document.querySelectorAll('[data-level="${level}"] .sh-bank').length`), 5, level);
   }
-  assert.equal(await evaluate(`document.querySelectorAll('.card.bank').length`), 15);
+  assert.equal(await evaluate(`document.querySelectorAll('.sh-bank').length`), 15);
   assert.match(await text('[data-bank-card="gh300-mix-adv"]'), /0 execuções · 240 de 240 questões do nível ainda não sorteadas/);
-  assert.match(await text('.home'), /700/);
-  assert.match(await text('.home'), /sem estudo de caso/);
+  assert.match(await text('.start-screen'), /700/);
+  assert.match(await text('.start-screen'), /sem estudo de caso/);
   await shot('01-home');
+  {
+    const full = await evaluate('document.documentElement.scrollHeight');
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: full, deviceScaleFactor: 1, mobile: false });
+    await shot('01-home-full');
+    await evaluate(`document.documentElement.setAttribute('data-scheme', 'light')`);
+    await shot('01-home-light');
+    await evaluate(`document.documentElement.setAttribute('data-scheme', 'contrast')`);
+    await shot('01-home-contrast');
+    await evaluate(`document.documentElement.setAttribute('data-scheme', 'auto')`);
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    await sleep(150);
+    const homeOverflow = await evaluate(`document.documentElement.scrollWidth - window.innerWidth`);
+    assert.ok(homeOverflow <= 0, 'rolagem horizontal na tela inicial no celular: ' + homeOverflow);
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 2400, deviceScaleFactor: 1, mobile: true });
+    await shot('01-home-mobile');
+    await cdp.send('Emulation.clearDeviceMetricsOverride');
+  }
   step('tela inicial com 15 simulados (4 fixos e 1 aleatório por nível) e nota sobre a prova e a pontuação');
 
   // Pré-prova na sequência do sandbox oficial do GitHub
@@ -475,7 +492,7 @@ async function run() {
   step(`relatório: ${result.pct}% com crédito parcial, 6 domínios, ${shown} itens errados/parciais filtrados`);
 
   await click('[data-act="home"]');
-  await waitFor(`document.querySelector('.home')`);
+  await waitFor(`document.querySelector('.start-screen')`);
   assert.match(await text('[data-bank-card="gh300-full-a"]'), /Histórico \(1\)/);
   step('histórico e "Ver relatório" na tela inicial');
 
@@ -504,7 +521,7 @@ async function run() {
 
   await click('[data-act="exit"]');
   await confirmYes();
-  await waitFor(`document.querySelector('.home')`);
+  await waitFor(`document.querySelector('.start-screen')`);
   assert.match(await text('[data-bank-card="gh300-practice-a"]'), /Continuar/);
   step('Exit simulator mantém a tentativa para continuar');
 
@@ -592,7 +609,7 @@ async function run() {
   await click('.pd-history [data-act="report"]');
   await waitFor(`document.querySelector('.report')`);
   await click('[data-act="home"]');
-  await waitFor(`document.querySelector('.home')`);
+  await waitFor(`document.querySelector('.start-screen')`);
   assert.equal(await evaluate(`document.documentElement.lang`), 'pt-BR');
   await click('input[data-act="lang"][data-v="pt"]');
   step('painel: desempenho, cobertura oficial e confiança separados, estado da recomendação, o que falta, objetivos, matriz de assuntos e evolução');
@@ -616,7 +633,7 @@ async function run() {
   // Simulado aleatório: cada execução sorteia questões novas do mesmo nível
   await click('[data-act="exit"]');
   await confirmYes();
-  await waitFor(`document.querySelector('.home')`);
+  await waitFor(`document.querySelector('.start-screen')`);
   const runItems = [];
   for (let run = 0; run < 2; run++) {
     await click('[data-act="start"][data-mode="study"][data-bank="gh300-mix-int"]');
@@ -627,7 +644,7 @@ async function run() {
     runItems.push(its);
     await click('[data-act="exit"]');
     await confirmYes();
-    await waitFor(`document.querySelector('.home')`);
+    await waitFor(`document.querySelector('.start-screen')`);
   }
   const repeated = runItems[1].filter((id) => runItems[0].includes(id)).length;
   assert.ok(repeated <= 10, 'a segunda execução repetiu questões demais: ' + repeated);
@@ -639,12 +656,12 @@ async function run() {
   await click('[data-act="reset-progress"]');
   await waitFor(`/Zerar progresso/.test((document.querySelector('.modal') || {}).textContent || '')`);
   await confirmYes();
-  await waitFor(`document.querySelector('.home .notice')`);
-  assert.match(await text('.notice'), /Progresso zerado/);
+  await waitFor(`document.querySelector('.start-screen .sh-notice')`);
+  assert.match(await text('.sh-notice'), /Progresso zerado/);
   assert.equal(await evaluate(`GHX.App.store.history().length`), 0);
   assert.equal(await evaluate(`Object.keys(GHX.App.store.data.active).length`), 0);
   assert.equal(await evaluate(`GHX.App.store.pref('lang')`), 'pt');
-  assert.doesNotMatch(await text('.home'), /Histórico \(/);
+  assert.doesNotMatch(await text('.start-screen'), /Histórico \(/);
   step('Zerar progresso: confirmação, histórico e tentativas apagados, preferências mantidas');
 
   assert.deepEqual(errors, [], 'erros no console');

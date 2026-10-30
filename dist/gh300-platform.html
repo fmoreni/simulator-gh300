@@ -470,14 +470,14 @@ pre.code {
 .rep-tools { display: flex; gap: .5rem; flex-wrap: wrap; }
 
 /* ==========================================================================
-   Painel de progresso — estilos isolados.
-   Tudo abaixo vale só dentro de .progress-dashboard (e da dica .ch-tip,
+   Painel de progresso e tela inicial — estilos isolados.
+   Tudo abaixo vale só dentro de .progress-dashboard ou .start-screen (e da dica .ch-tip,
    inserida no body, usada só pelos gráficos do painel). Nenhuma regra global, nenhuma variável de :root e
    nenhum seletor das telas de prova (.card, .btn, .exam, .qbox, .opt,
    .xh, .xf, .side) é alterado aqui.
    ========================================================================== */
 
-.progress-dashboard {
+.progress-dashboard, .start-screen {
   /* superfícies e texto */
   --pd-bg: #F8FAFC; --pd-card: #FFFFFF; --pd-card-2: #F1F5F9; --pd-text: #0F172A; --pd-muted: #475569; --pd-line: #E2E8F0;
   /* identidade */
@@ -493,7 +493,8 @@ pre.code {
   font-variant-numeric: tabular-nums;
 }
 @media (prefers-color-scheme: dark) {
-  :root[data-scheme="auto"]:not([data-theme="light"]) .progress-dashboard {
+  :root[data-scheme="auto"]:not([data-theme="light"]) .progress-dashboard,
+  :root[data-scheme="auto"]:not([data-theme="light"]) .start-screen {
     --pd-bg: #0B1220; --pd-card: #111A2E; --pd-card-2: #17213A; --pd-text: #E2E8F0; --pd-muted: #94A3B8; --pd-line: #26324A;
     --pd-primary: #4C8DF6; --pd-secondary: #8B5CF6; --pd-success: #2EA043; --pd-warning: #D29922; --pd-danger: #E5534B; --pd-info: #22B8CF;
     --pd-primary-ink: #93C5FD; --pd-secondary-ink: #C4B5FD; --pd-success-ink: #6EE7B7; --pd-warning-ink: #FCD34D; --pd-danger-ink: #FCA5A5; --pd-info-ink: #67E8F9;
@@ -503,7 +504,9 @@ pre.code {
   }
 }
 :root[data-scheme="dark"] .progress-dashboard,
-:root[data-scheme="auto"][data-theme="dark"] .progress-dashboard {
+:root[data-scheme="auto"][data-theme="dark"] .progress-dashboard,
+:root[data-scheme="dark"] .start-screen,
+:root[data-scheme="auto"][data-theme="dark"] .start-screen {
   --pd-bg: #0B1220; --pd-card: #111A2E; --pd-card-2: #17213A; --pd-text: #E2E8F0; --pd-muted: #94A3B8; --pd-line: #26324A;
   --pd-primary: #4C8DF6; --pd-secondary: #8B5CF6; --pd-success: #2EA043; --pd-warning: #D29922; --pd-danger: #E5534B; --pd-info: #22B8CF;
   --pd-primary-ink: #93C5FD; --pd-secondary-ink: #C4B5FD; --pd-success-ink: #6EE7B7; --pd-warning-ink: #FCD34D; --pd-danger-ink: #FCA5A5; --pd-info-ink: #67E8F9;
@@ -511,7 +514,8 @@ pre.code {
   --pd-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .25); --pd-shadow-hover: 0 2px 4px rgba(0, 0, 0, .5), 0 12px 30px rgba(0, 0, 0, .35);
   --pd-banner: linear-gradient(120deg, #1E3A8A 0%, #1D4ED8 45%, #5B21B6 100%);
 }
-:root[data-scheme="contrast"] .progress-dashboard {
+:root[data-scheme="contrast"] .progress-dashboard,
+:root[data-scheme="contrast"] .start-screen {
   --pd-bg: #000000; --pd-card: #000000; --pd-card-2: #000000; --pd-text: #FFFFFF; --pd-muted: #FFFFFF; --pd-line: #FFFFFF;
   --pd-primary: #FFFF00; --pd-secondary: #00FFFF; --pd-success: #3FF23F; --pd-warning: #FFFF00; --pd-danger: #FF6B6B; --pd-info: #00FFFF;
   --pd-primary-ink: #FFFF00; --pd-secondary-ink: #00FFFF; --pd-success-ink: #3FF23F; --pd-warning-ink: #FFFF00; --pd-danger-ink: #FF6B6B; --pd-info-ink: #00FFFF;
@@ -828,6 +832,164 @@ pre.code {
 @media (prefers-reduced-motion: reduce) {
   .progress-dashboard *, .progress-dashboard *::before, .progress-dashboard *::after { transition: none !important; animation: none !important; }
   .progress-dashboard .pd-metric:hover, .progress-dashboard .pd-topic:hover, .progress-dashboard .pd-btn-light:hover { transform: none; }
+}
+
+/* ---------- tela inicial (.start-screen) ---------- */
+.start-screen .sh-wrap { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 22px; }
+.start-screen h1, .start-screen h2, .start-screen h3 { color: inherit; margin: 0; }
+.start-screen p { margin: 0; }
+.start-screen ul { margin: 0; padding: 0; list-style: none; }
+.start-screen a { color: var(--pd-primary-ink); }
+.start-screen .pd-ic { width: 1.1em; height: 1.1em; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.start-screen .sh-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.start-screen button:focus-visible, .start-screen summary:focus-visible, .start-screen a:focus-visible { outline: 3px solid var(--pd-primary); outline-offset: 2px; }
+:root[data-scheme="contrast"] .start-screen button:focus-visible { outline-color: #00FFFF; }
+
+/* cabeçalho */
+.start-screen .sh-hero { background: var(--pd-banner); color: #FFFFFF; border-radius: 22px; padding: 30px 30px 26px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; position: relative; overflow: hidden; box-shadow: var(--pd-shadow); }
+.start-screen .sh-hero::after { content: ""; position: absolute; right: -80px; top: -100px; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 70%); pointer-events: none; }
+.start-screen .sh-hero-main { position: relative; z-index: 1; max-width: 760px; }
+.start-screen .sh-badge { display: inline-flex; align-items: center; gap: .45rem; font-size: .78rem; font-weight: 600; padding: .3rem .75rem; border-radius: 999px; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35); }
+.start-screen .sh-hero h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -.01em; margin: .75rem 0 .4rem; }
+.start-screen .sh-hero p { font-size: 1rem; opacity: .95; max-width: 64ch; }
+.start-screen .sh-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1.1rem; }
+.start-screen .sh-stats li { background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .28); border-radius: 12px; padding: .5rem .85rem; display: flex; flex-direction: column; min-width: 110px; }
+.start-screen .sh-stats strong { font-size: 1.35rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.start-screen .sh-stats span { font-size: .76rem; opacity: .92; }
+.start-screen .sh-hero-actions { display: flex; gap: .6rem; flex-wrap: wrap; position: relative; z-index: 1; }
+:root[data-scheme="contrast"] .start-screen .sh-hero { border: 2px solid #FFFFFF; }
+:root[data-scheme="contrast"] .start-screen .sh-hero::after { display: none; }
+:root[data-scheme="contrast"] .start-screen .sh-stats li { border-color: #FFFFFF; background: #000000; }
+
+/* botões e links da tela inicial */
+.start-screen .sh-btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; font: inherit; font-weight: 600; font-size: .9rem; padding: .55rem 1rem; min-height: 40px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: background .15s, box-shadow .15s, transform .15s; }
+.start-screen .sh-btn-light { background: #FFFFFF; color: #1E3A8A; }
+.start-screen .sh-btn-light:hover { box-shadow: 0 4px 14px rgba(0, 0, 0, .18); transform: translateY(-1px); }
+.start-screen .sh-btn-ghost { background: rgba(255, 255, 255, .1); color: #FFFFFF; border-color: rgba(255, 255, 255, .55); }
+.start-screen .sh-btn-ghost:hover { background: rgba(255, 255, 255, .2); }
+.start-screen .sh-hero .sh-btn:focus-visible { outline-color: #FFFFFF; }
+.start-screen .sh-btn-primary { background: var(--pd-primary); color: #FFFFFF; }
+.start-screen .sh-btn-primary:hover { box-shadow: var(--pd-shadow-hover); filter: brightness(1.05); }
+.start-screen .sh-btn-soft { background: var(--pd-card-2); color: var(--pd-text); border-color: var(--pd-line); }
+.start-screen .sh-btn-soft:hover { border-color: var(--pd-primary); color: var(--pd-primary-ink); }
+:root[data-scheme="contrast"] .start-screen .sh-btn { background: #000000; color: #FFFF00; border: 2px solid #FFFF00; }
+:root[data-scheme="contrast"] .start-screen .sh-btn-primary { background: #FFFF00; color: #000000; }
+.start-screen .sh-count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.4rem; height: 1.4rem; padding: 0 .4rem; border-radius: 999px; background: #1E3A8A; color: #FFFFFF; font-size: .74rem; }
+.start-screen .sh-link { display: inline-flex; align-items: center; gap: .35rem; font: inherit; font-size: .85rem; font-weight: 600; color: var(--pd-primary-ink); background: none; border: 0; padding: .25rem .2rem; cursor: pointer; }
+.start-screen .sh-link:hover { text-decoration: underline; }
+.start-screen .sh-link-danger { color: var(--pd-danger-ink); }
+
+/* aviso */
+.start-screen .sh-notice { display: flex; gap: .6rem; align-items: flex-start; padding: .85rem 1rem; border-radius: 12px; background: color-mix(in srgb, var(--pd-warning) 14%, var(--pd-card)); border: 1px solid color-mix(in srgb, var(--pd-warning) 45%, var(--pd-line)); color: var(--pd-text); font-size: .92rem; }
+.start-screen .sh-notice .pd-ic { color: var(--pd-warning-ink); margin-top: .1rem; }
+
+/* continuar de onde parou */
+.start-screen .sh-resume { background: var(--pd-card); border: 1px solid color-mix(in srgb, var(--pd-primary) 35%, var(--pd-line)); border-left: 5px solid var(--pd-primary); border-radius: 16px; padding: 16px 18px; box-shadow: var(--pd-shadow); }
+.start-screen .sh-resume-h { display: flex; align-items: center; gap: .5rem; color: var(--pd-primary-ink); margin-bottom: .6rem; }
+.start-screen .sh-resume li { display: flex; justify-content: space-between; align-items: center; gap: .8rem; padding: .55rem 0; border-top: 1px solid var(--pd-line); flex-wrap: wrap; }
+.start-screen .sh-resume li:first-child { border-top: 0; }
+.start-screen .sh-resume small { display: block; color: var(--pd-muted); font-size: .8rem; }
+
+/* preferências */
+.start-screen .sh-setup { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 16px; }
+.start-screen .sh-pref { background: var(--pd-card); border: 1px solid var(--pd-line); border-radius: 16px; padding: 16px 18px; box-shadow: var(--pd-shadow); display: flex; flex-direction: column; gap: .7rem; min-width: 0; }
+.start-screen .sh-pref-h { display: flex; align-items: center; gap: .5rem; }
+.start-screen .sh-pref-h .pd-ic { color: var(--pd-primary); width: 1.25em; height: 1.25em; }
+.start-screen .sh-pref p { color: var(--pd-muted); font-size: .84rem; }
+.start-screen .sh-pref-info .pd-ic { color: var(--pd-info); }
+.start-screen .sh-seg { display: inline-flex; background: var(--pd-card-2); border: 1px solid var(--pd-line); border-radius: 12px; padding: 4px; gap: 4px; width: max-content; max-width: 100%; }
+.start-screen .sh-seg-opt { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: .45rem 1rem; border-radius: 9px; font-weight: 600; font-size: .9rem; color: var(--pd-muted); cursor: pointer; }
+.start-screen .sh-seg-opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.start-screen .sh-seg-opt.sel { background: var(--pd-card); color: var(--pd-primary-ink); box-shadow: 0 1px 3px rgba(15, 23, 42, .12); }
+.start-screen .sh-seg-opt:has(input:focus-visible) { outline: 3px solid var(--pd-primary); outline-offset: 1px; }
+:root[data-scheme="contrast"] .start-screen .sh-seg-opt.sel { background: #FFFF00; color: #000000; }
+.start-screen .sh-switch { position: relative; display: inline-flex; align-items: center; gap: .65rem; cursor: pointer; font-weight: 600; font-size: .9rem; }
+.start-screen .sh-switch input { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 44px; height: 26px; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.start-screen .sh-switch-ui { position: relative; flex: 0 0 auto; width: 44px; height: 26px; border-radius: 999px; background: var(--pd-s-none); transition: background .2s; }
+.start-screen .sh-switch-ui::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s; }
+.start-screen .sh-switch input:checked + .sh-switch-ui { background: var(--pd-success); }
+.start-screen .sh-switch input:checked + .sh-switch-ui::after { transform: translateX(18px); }
+.start-screen .sh-switch input:focus-visible + .sh-switch-ui { outline: 3px solid var(--pd-primary); outline-offset: 2px; }
+:root[data-scheme="contrast"] .start-screen .sh-switch-ui { border: 2px solid #FFFFFF; background: #000000; }
+:root[data-scheme="contrast"] .start-screen .sh-switch input:checked + .sh-switch-ui { background: #3FF23F; }
+
+/* níveis */
+.start-screen .sh-level { --sh-lv: var(--pd-primary); display: flex; flex-direction: column; gap: 14px; }
+.start-screen .sh-lv-1 { --sh-lv: var(--pd-success); --sh-lv-ink: var(--pd-success-ink); }
+.start-screen .sh-lv-2 { --sh-lv: var(--pd-primary); --sh-lv-ink: var(--pd-primary-ink); }
+.start-screen .sh-lv-3 { --sh-lv: var(--pd-secondary); --sh-lv-ink: var(--pd-secondary-ink); }
+.start-screen .sh-level-h { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; padding-bottom: .6rem; border-bottom: 2px solid color-mix(in srgb, var(--sh-lv) 35%, var(--pd-line)); }
+.start-screen .sh-level-tag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sh-lv-ink); background: color-mix(in srgb, var(--sh-lv) 14%, transparent); padding: .15rem .55rem; border-radius: 999px; }
+.start-screen .sh-level-h h2 { font-size: 1.5rem; font-weight: 800; margin: .3rem 0 .15rem; }
+.start-screen .sh-level-h p { color: var(--pd-muted); font-size: .92rem; }
+.start-screen .sh-level-p { display: flex; flex-direction: column; gap: .35rem; min-width: 180px; font-size: .82rem; font-weight: 600; color: var(--pd-muted); text-align: right; }
+.start-screen .sh-track { display: block; height: 8px; border-radius: 999px; background: var(--pd-card-2); border: 1px solid var(--pd-line); overflow: hidden; }
+.start-screen .sh-track > span { display: block; height: 100%; border-radius: 999px; background: var(--sh-lv, var(--pd-primary)); }
+.start-screen .sh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+/* cartões dos simulados */
+.start-screen .sh-bank { position: relative; background: var(--pd-card); border: 1px solid var(--pd-line); border-radius: 16px; padding: 18px; box-shadow: var(--pd-shadow); display: flex; flex-direction: column; gap: .7rem; transition: box-shadow .2s, transform .2s; min-width: 0; overflow: hidden; }
+.start-screen .sh-bank::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--sh-lv); }
+.start-screen .sh-bank:hover { box-shadow: var(--pd-shadow-hover); transform: translateY(-2px); }
+.start-screen .sh-bank-mix { background: linear-gradient(160deg, color-mix(in srgb, var(--sh-lv) 9%, var(--pd-card)), var(--pd-card) 55%); border-style: dashed; border-color: color-mix(in srgb, var(--sh-lv) 45%, var(--pd-line)); }
+.start-screen .sh-bank-h { display: flex; gap: .75rem; align-items: center; }
+.start-screen .sh-num { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 2.6rem; height: 2.6rem; border-radius: 12px; font-weight: 800; font-size: 1rem; color: var(--sh-lv-ink); background: color-mix(in srgb, var(--sh-lv) 14%, transparent); }
+.start-screen .sh-num .pd-ic { width: 1.3rem; height: 1.3rem; }
+.start-screen .sh-bank-h h3 { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+.start-screen .sh-bank-h p { font-size: .8rem; color: var(--pd-muted); }
+.start-screen .sh-status { display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; font-weight: 700; padding: .2rem .6rem; border-radius: 999px; border: 1px solid var(--pd-line); background: var(--pd-card-2); color: var(--pd-muted); }
+.start-screen .sh-st-done { color: var(--pd-success-ink); border-color: color-mix(in srgb, var(--pd-success) 40%, var(--pd-line)); background: color-mix(in srgb, var(--pd-success) 10%, var(--pd-card)); }
+.start-screen .sh-st-run { color: var(--pd-primary-ink); border-color: color-mix(in srgb, var(--pd-primary) 40%, var(--pd-line)); background: color-mix(in srgb, var(--pd-primary) 10%, var(--pd-card)); }
+.start-screen .sh-blurb { font-size: .88rem; color: var(--pd-text); line-height: 1.5; }
+.start-screen .sh-facts { display: flex; flex-wrap: wrap; gap: .4rem; }
+.start-screen .sh-facts li { display: inline-flex; align-items: center; gap: .35rem; font-size: .78rem; color: var(--pd-muted); background: var(--pd-card-2); border: 1px solid var(--pd-line); border-radius: 8px; padding: .25rem .55rem; }
+.start-screen .sh-facts strong { color: var(--pd-text); }
+.start-screen .sh-types { font-size: .76rem; color: var(--pd-muted); }
+.start-screen .sh-mix { display: flex; flex-direction: column; gap: .35rem; font-size: .78rem; color: var(--pd-muted); background: var(--pd-card-2); border: 1px solid var(--pd-line); border-radius: 10px; padding: .55rem .7rem; }
+.start-screen .sh-mix-h { display: flex; flex-direction: column; gap: .15rem; }
+.start-screen .sh-mix-h > span:first-child { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; color: var(--sh-lv-ink); }
+.start-screen .sh-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: auto; padding-top: .3rem; }
+.start-screen .sh-actions .sh-btn { flex: 1 1 auto; }
+.start-screen .sh-actions-2 { display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+.start-screen .sh-hist { border-top: 1px solid var(--pd-line); padding-top: .5rem; }
+.start-screen .sh-hist summary { cursor: pointer; font-size: .84rem; font-weight: 600; color: var(--pd-muted); }
+.start-screen .sh-hist ul { margin-top: .4rem; display: flex; flex-direction: column; }
+.start-screen .sh-hist .sh-link { width: 100%; justify-content: space-between; font-weight: 500; color: var(--pd-text); border-radius: 6px; padding: .3rem .4rem; }
+.start-screen .sh-hist .sh-link:hover { background: var(--pd-card-2); text-decoration: none; }
+.start-screen .sh-hist .sh-link strong { color: var(--pd-primary-ink); }
+:root[data-scheme="contrast"] .start-screen .sh-bank, :root[data-scheme="contrast"] .start-screen .sh-pref, :root[data-scheme="contrast"] .start-screen .sh-info, :root[data-scheme="contrast"] .start-screen .sh-resume { border: 2px solid #FFFFFF; background: #000000; }
+
+/* sobre a prova */
+.start-screen .sh-about h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .8rem; }
+.start-screen .sh-about-grid { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 16px; }
+.start-screen .sh-info { background: var(--pd-card); border: 1px solid var(--pd-line); border-radius: 16px; padding: 18px; box-shadow: var(--pd-shadow); display: flex; flex-direction: column; gap: .5rem; }
+.start-screen .sh-info > .pd-ic { width: 1.6rem; height: 1.6rem; color: var(--pd-primary); }
+.start-screen .sh-info h3 { font-size: 1rem; font-weight: 700; }
+.start-screen .sh-info p { font-size: .88rem; color: var(--pd-text); line-height: 1.55; }
+.start-screen .sh-domains ul { display: flex; flex-direction: column; gap: .55rem; }
+.start-screen .sh-domains li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem .6rem; font-size: .82rem; }
+.start-screen .sh-domains .sh-w { font-weight: 700; color: var(--pd-primary-ink); }
+.start-screen .sh-domains .sh-track { grid-column: 1 / -1; height: 6px; }
+
+/* responsivo e movimento reduzido */
+@media (max-width: 1024px) {
+  .start-screen .sh-setup { grid-template-columns: 1fr 1fr; }
+  .start-screen .sh-pref-info { grid-column: 1 / -1; }
+  .start-screen .sh-about-grid { grid-template-columns: 1fr 1fr; }
+  .start-screen .sh-domains { grid-column: 1 / -1; }
+}
+@media (max-width: 680px) {
+  .start-screen .sh-wrap { padding: 12px 12px 36px; gap: 16px; }
+  .start-screen .sh-hero { padding: 20px 18px; border-radius: 16px; }
+  .start-screen .sh-hero h1 { font-size: 1.6rem; }
+  .start-screen .sh-stats li { min-width: calc(50% - 5px); flex: 1 1 calc(50% - 5px); }
+  .start-screen .sh-setup, .start-screen .sh-about-grid { grid-template-columns: 1fr; }
+  .start-screen .sh-grid { grid-template-columns: 1fr; }
+  .start-screen .sh-level-p { text-align: left; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start-screen *, .start-screen *::before, .start-screen *::after { transition: none !important; }
+  .start-screen .sh-bank:hover, .start-screen .sh-btn-light:hover { transform: none; }
 }
 
 </style>
@@ -23020,6 +23182,12 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     copilot: 'M7 9a5 5 0 0 1 10 0v1.5a2.5 2.5 0 0 1 2 2.5v2a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-2a2.5 2.5 0 0 1 2-2.5V9zM9.5 14v1.5M14.5 14v1.5',
     list: 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01',
     info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5h.01',
+    play: 'M7 4.5v15l12-7.5-12-7.5z',
+    sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+    globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z',
+    shuffle: 'M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5',
+    trash: 'M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3',
+    doc: 'M6 3h9l5 5v13H6zM14 3v6h6M9 13h7M9 17h7',
   };
   function icon(name, cls) {
     return '<svg class="pd-ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + ICON[name] + '"/></svg>';
@@ -23394,6 +23562,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   }
 
   GHX.Dashboard = {
+    icon: icon,
     render: function (s) {
       var an = s.analysis;
       uid = 0;
@@ -23532,30 +23701,48 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     return d.toLocaleDateString(GHX.locale()) + ' ' + d.toLocaleTimeString(GHX.locale(), { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Tela inicial: estilos isolados em .start-screen (classes sh-*), sem tocar nas classes
+  // compartilhadas com a prova (.card, .btn etc.). As ações continuam pelos mesmos data-act.
+  function ico(name) { return GHX.Dashboard.icon(name); }
+  function pctTxt(x) { return String(x).replace('.', ',') + '%'; }
+  var LEVEL_UI = {
+    'Iniciante': { cls: 'sh-lv-1', note: 'Fundamentos, conceitos essenciais e uso básico.' },
+    'Intermediário': { cls: 'sh-lv-2', note: 'Cenários reais de desenvolvimento e aplicação prática.' },
+    'Avançado': { cls: 'sh-lv-3', note: 'Cenários corporativos, governança, arquitetura e escolha da melhor abordagem.' },
+  };
+
   function bankCard(b) {
     var st = GHX.bankStats(b);
     var active = store.active(b.id);
     var hist = store.history(b.id);
     var last = hist[0];
+    var best = hist.length ? Math.max.apply(null, hist.map(function (a) { return a.result.pct; })) : null;
+    var num = b.dynamic ? ico('shuffle') : esc((b.title.match(/\d+/) || [''])[0]);
+    var status = active ? '<span class="sh-status sh-st-run">' + ico('clock') + 'Em andamento</span>'
+      : best != null ? '<span class="sh-status sh-st-done">' + ico('check') + 'Melhor ' + pctTxt(best) + '</span>'
+        : '<span class="sh-status sh-st-new">Não iniciado</span>';
     var actions = [];
-    if (active) actions.push('<button class="btn primary" data-act="continue" data-bank="' + b.id + '" data-k="cont-' + b.id + '">Continuar (' + (active.mode === 'exam' ? 'exame' : 'estudo') + (active.lang === 'en' ? ', English' : '') + ')</button>');
-    actions.push('<button class="btn' + (active ? '' : ' primary') + '" data-act="start" data-mode="exam" data-bank="' + b.id + '" data-k="exam-' + b.id + '">Modo exame</button>');
-    actions.push('<button class="btn" data-act="start" data-mode="study" data-bank="' + b.id + '" data-k="study-' + b.id + '">Modo estudo</button>');
-    if (last) actions.push('<button class="btn ghost" data-act="report" data-id="' + last.id + '" data-k="rep-' + b.id + '">Ver relatório</button>');
-    if (active) actions.push('<button class="btn ghost" data-act="discard" data-bank="' + b.id + '" data-k="disc-' + b.id + '">Descartar tentativa</button>');
-    return '<article class="card bank" data-bank-card="' + b.id + '">' +
-      '<header><h3>' + esc(b.title) + '</h3><p class="sub">' + esc(b.subtitle) + '</p></header>' +
-      '<p>' + esc(b.blurb) + '</p>' +
-      '<dl class="facts">' +
-      '<div><dt>Questões</dt><dd>' + st.count + '</dd></div>' +
-      '<div><dt>Tempo</dt><dd>' + b.minutes + ' min</dd></div>' +
-      '<div><dt>Formato</dt><dd>' + esc(sectionList(b)) + '</dd></div>' +
-      '<div class="wide"><dt>Tipos de item</dt><dd>' + esc(typeList(b)) + '</dd></div>' +
+    if (active) actions.push('<button type="button" class="sh-btn sh-btn-primary" data-act="continue" data-bank="' + b.id + '" data-k="cont-' + b.id + '">' + ico('play') + 'Continuar (' + (active.mode === 'exam' ? 'exame' : 'estudo') + (active.lang === 'en' ? ', English' : '') + ')</button>');
+    actions.push('<button type="button" class="sh-btn ' + (active ? 'sh-btn-soft' : 'sh-btn-primary') + '" data-act="start" data-mode="exam" data-bank="' + b.id + '" data-k="exam-' + b.id + '">' + ico('clock') + 'Modo exame</button>');
+    actions.push('<button type="button" class="sh-btn sh-btn-soft" data-act="start" data-mode="study" data-bank="' + b.id + '" data-k="study-' + b.id + '">' + ico('book') + 'Modo estudo</button>');
+    var extraActions = [];
+    if (last) extraActions.push('<button type="button" class="sh-link" data-act="report" data-id="' + last.id + '" data-k="rep-' + b.id + '">' + ico('doc') + 'Ver relatório</button>');
+    if (active) extraActions.push('<button type="button" class="sh-link sh-link-danger" data-act="discard" data-bank="' + b.id + '" data-k="disc-' + b.id + '">' + ico('trash') + 'Descartar tentativa</button>');
+    return '<article class="sh-bank' + (b.dynamic ? ' sh-bank-mix' : '') + '" data-bank-card="' + b.id + '">' +
+      '<header class="sh-bank-h"><span class="sh-num" aria-hidden="true">' + num + '</span><div><h3>' + esc(b.title) + '</h3><p>' + esc(b.subtitle) + '</p></div></header>' +
+      '<div class="sh-bank-s">' + status + '</div>' +
+      '<p class="sh-blurb">' + esc(b.blurb) + '</p>' +
+      '<ul class="sh-facts">' +
+      '<li>' + ico('list') + '<span><strong>' + st.count + '</strong> questões</span></li>' +
+      '<li>' + ico('clock') + '<span><strong>' + b.minutes + '</strong> min</span></li>' +
+      '<li>' + ico('layers') + '<span>' + esc(sectionList(b)) + '</span></li>' +
+      '</ul>' +
+      '<p class="sh-types"><span class="sh-sr">Tipos de item: </span>' + esc(typeList(b)) + '</p>' +
       (b.dynamic ? mixFacts(b) : '') +
-      '</dl>' +
-      '<div class="actions">' + actions.join('') + '</div>' +
-      (hist.length ? '<details class="hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
-        return '<li><button class="link" data-act="report" data-id="' + a.id + '">' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + ' · <strong>' + a.result.pct + '%</strong></button></li>';
+      '<div class="sh-actions">' + actions.join('') + '</div>' +
+      (extraActions.length ? '<div class="sh-actions-2">' + extraActions.join('') + '</div>' : '') +
+      (hist.length ? '<details class="sh-hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
+        return '<li><button type="button" class="sh-link" data-act="report" data-id="' + a.id + '"><span>' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + '</span><strong>' + pctTxt(a.result.pct) + '</strong></button></li>';
       }).join('') + '</ul></details>' : '') +
       '</article>';
   }
@@ -23567,48 +23754,84 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var u = mixUsage(b.id), runs = u.runs;
     var used = Object.keys(u.ids).length;
     var pool = GHX.Mixer.pool(b.level).length;
-    return '<div class="wide"><dt>Sorteio</dt><dd>' + runs + ' execuç' + (runs === 1 ? 'ão' : 'ões') + ' · ' + (pool - used) + ' de ' + pool + ' questões do nível ainda não sorteadas aqui</dd></div>';
+    var left = pool - used;
+    return '<div class="sh-mix"><div class="sh-mix-h"><span>' + ico('shuffle') + 'Sorteio</span><span>' + runs + ' execuç' + (runs === 1 ? 'ão' : 'ões') + ' · ' + left + ' de ' + pool + ' questões do nível ainda não sorteadas aqui</span></div>' +
+      '<span class="sh-track" aria-hidden="true"><span style="width:' + (100 * left / pool).toFixed(1) + '%"></span></span></div>';
   }
 
   function renderHome() {
-    // Agrupa por nível de dificuldade; bancos sem nível caem nas trilhas antigas.
-    var LEVELS = [
-      { name: 'Iniciante', note: 'Fundamentos, conceitos essenciais e uso básico.' },
-      { name: 'Intermediário', note: 'Cenários reais de desenvolvimento e aplicação prática.' },
-      { name: 'Avançado', note: 'Cenários corporativos, governança, arquitetura e escolha da melhor abordagem.' },
-    ];
     var all = GHX.listBanks();
-    var groups = LEVELS.map(function (l) {
-      return { name: l.name, note: l.note, banks: all.filter(function (b) { return b.level === l.name; }) };
+    var groups = ['Iniciante', 'Intermediário', 'Avançado'].map(function (name) {
+      return { name: name, ui: LEVEL_UI[name], banks: all.filter(function (b) { return b.level === name; }) };
     });
     var rest = all.filter(function (b) { return !b.level; });
     if (rest.length) {
-      groups.push({ name: 'Formato completo da prova', banks: rest.filter(function (b) { return b.track === 'full'; }) });
-      groups.push({ name: 'Treino por domínio', banks: rest.filter(function (b) { return b.track === 'practice'; }) });
+      groups.push({ name: 'Formato completo da prova', ui: { cls: 'sh-lv-2', note: '' }, banks: rest.filter(function (b) { return b.track === 'full'; }) });
+      groups.push({ name: 'Treino por domínio', ui: { cls: 'sh-lv-1', note: '' }, banks: rest.filter(function (b) { return b.track === 'practice'; }) });
     }
     groups = groups.filter(function (g) { return g.banks.length; });
     var extra = !!store.pref('extraTime');
     var lang = store.pref('lang') === 'en' ? 'en' : 'pt';
     var done = store.history().length;
-    return '<div class="home">' +
-      '<header class="home-h"><div><h1>Sala de prova GH-300</h1>' +
-      '<p class="sub">Simulados para o exame ' + esc(CERT.exam) + ' · domínios do guia de estudo oficial (skills measured as of ' + esc(CERT.asOf.split('-').reverse().join('/')) + ')</p></div>' +
-      '<div class="home-tools"><button class="btn" data-act="dash" data-k="home-dash">Painel de progresso' + (done ? ' (' + done + ')' : '') + '</button>' +
-      '<button class="btn ghost small" data-act="scheme" data-k="home-scheme">Color Scheme</button></div></header>' +
-      (ui.notice ? '<p class="notice" role="status">' + esc(ui.notice) + '</p>' : '') +
-      '<p class="disclaimer">Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. As questões são originais e baseadas na documentação oficial. A moldura segue o <a href="' + esc(CERT.sandbox) + '" target="_blank" rel="noopener">sandbox oficial das provas do GitHub</a>: uma única seção, sem estudo de caso, com questões de múltipla escolha, Drag and Drop, Build List Reorder e Active Screen.</p>' +
-      '<div class="lang-pick" role="radiogroup" aria-labelledby="lang-h"><span id="lang-h" class="lang-h">Idioma das questões:</span>' + GHX.LANGS.map(function (l) {
-        return '<label class="lang-opt' + (lang === l.id ? ' sel' : '') + '"><input type="radio" name="lang" data-act="lang" data-v="' + l.id + '" data-k="lang-' + l.id + '"' + (lang === l.id ? ' checked' : '') + '> ' + esc(l.label) + '</label>';
-      }).join('') + '<span class="small muted">A mesma prova, com as mesmas questões e o mesmo gabarito, nos dois idiomas. Vale para as próximas tentativas; a prova oficial é em inglês.</span></div>' +
-      '<label class="extra"><input type="checkbox" data-act="extra" data-k="extra"' + (extra ? ' checked' : '') + '> Acrescentar 30 minutos no modo exame (acomodação para quem não tem inglês como língua nativa)</label>' +
-      groups.map(function (g) {
-        return '<section data-level="' + esc(g.name) + '"><h2>' + esc(g.name) + '</h2>' + (g.note ? '<p class="sub">' + esc(g.note) + '</p>' : '') +
-          '<div class="grid">' + g.banks.map(bankCard).join('') + '</div></section>';
-      }).join('') +
-      '<section class="note"><h2>Sobre a prova e a pontuação</h2>' +
-      '<p>A GH-300 tem <strong>100 minutos</strong>. O número de questões não é publicado na página do exame; o GitHub descreve suas provas como cerca de 60 questões pontuadas mais itens de pré-teste não pontuados, que não dá para identificar. Os simulados completos daqui têm 60 questões.</p>' +
-      '<p>Este simulador mostra o <strong>aproveitamento em %</strong>, com crédito parcial nos itens de várias partes. A prova real usa uma <strong>escala de 1 a 1000</strong> e exige <strong>700</strong> para aprovação; a conversão a partir dos acertos <strong>não é pública</strong>. Portanto, 70% aqui não equivale a 700 na prova.</p>' +
-      '<p>Domínios e pesos: ' + CERT.domains.map(function (d) { return esc(d.name) + ' (' + d.weight[0] + '–' + d.weight[1] + '%)'; }).join(' · ') + '.</p></section>' +
+    var fixed = all.filter(function (b) { return !b.dynamic; });
+    var totalQ = fixed.reduce(function (n, b) { return n + GHX.bankItems(b).length; }, 0);
+    var actives = all.map(function (b) { var a = store.active(b.id); return a ? { b: b, a: a } : null; }).filter(Boolean);
+
+    var hero = '<header class="sh-hero">' +
+      '<div class="sh-hero-main"><span class="sh-badge">' + ico('copilot') + 'GitHub Copilot · ' + esc(CERT.exam.split(':')[0]) + '</span>' +
+      '<h1>Sala de prova GH-300</h1>' +
+      '<p>Simulados para o ' + esc(CERT.exam) + ', no formato da prova oficial e com os domínios do guia de estudo (skills measured as of ' + esc(CERT.asOf.split('-').reverse().join('/')) + ').</p>' +
+      '<ul class="sh-stats">' +
+      '<li><strong>' + all.length + '</strong><span>simulados</span></li>' +
+      '<li><strong>' + totalQ + '</strong><span>questões originais</span></li>' +
+      '<li><strong>' + CERT.minutes + '</strong><span>minutos por prova</span></li>' +
+      '<li><strong>' + CERT.passing + '</strong><span>para aprovação (de 1000)</span></li>' +
+      '</ul></div>' +
+      '<div class="sh-hero-actions">' +
+      '<button type="button" class="sh-btn sh-btn-light" data-act="dash" data-k="home-dash">' + ico('gauge') + 'Painel de progresso' + (done ? '<span class="sh-count">' + done + '</span>' : '') + '</button>' +
+      '<button type="button" class="sh-btn sh-btn-ghost" data-act="scheme" data-k="home-scheme">' + ico('sun') + 'Color Scheme</button>' +
+      '</div></header>';
+
+    var resume = actives.length ? '<section class="sh-resume" aria-label="Tentativas em andamento"><div class="sh-resume-h">' + ico('play') + '<strong>Continue de onde parou</strong></div><ul>' +
+      actives.map(function (x) {
+        var a = x.a, answered = Object.keys(a.answers || {}).length, total = S.total(a);
+        return '<li><span><strong>' + esc(x.b.title) + '</strong><small>' + (a.mode === 'exam' ? 'Modo exame' : 'Modo estudo') + (a.lang === 'en' ? ' · English' : '') + ' · ' + answered + ' de ' + total + ' respondidas</small></span>' +
+          '<button type="button" class="sh-btn sh-btn-primary" data-act="continue" data-bank="' + x.b.id + '" data-k="resume-' + x.b.id + '">' + ico('play') + 'Continuar</button></li>';
+      }).join('') + '</ul></section>' : '';
+
+    var setup = '<section class="sh-setup" aria-label="Preferências da prova">' +
+      '<div class="sh-pref"><div class="sh-pref-h">' + ico('globe') + '<strong id="lang-h">Idioma das questões</strong></div>' +
+      '<div class="sh-seg" role="radiogroup" aria-labelledby="lang-h">' + GHX.LANGS.map(function (l) {
+        return '<label class="sh-seg-opt' + (lang === l.id ? ' sel' : '') + '"><input type="radio" name="lang" data-act="lang" data-v="' + l.id + '" data-k="lang-' + l.id + '"' + (lang === l.id ? ' checked' : '') + '><span>' + esc(l.label) + '</span></label>';
+      }).join('') + '</div>' +
+      '<p>A mesma prova, com as mesmas questões e o mesmo gabarito, nos dois idiomas. Vale para as próximas tentativas; a prova oficial é em inglês.</p></div>' +
+      '<div class="sh-pref"><div class="sh-pref-h">' + ico('clock') + '<strong>Tempo extra</strong></div>' +
+      '<label class="sh-switch"><input type="checkbox" role="switch" data-act="extra" data-k="extra"' + (extra ? ' checked' : '') + '><span class="sh-switch-ui" aria-hidden="true"></span><span>Acrescentar 30 minutos no modo exame</span></label>' +
+      '<p>Acomodação para quem não tem inglês como língua nativa, como na prova oficial.</p></div>' +
+      '<div class="sh-pref sh-pref-info"><div class="sh-pref-h">' + ico('info') + '<strong>Sobre o simulador</strong></div>' +
+      '<p>Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. As questões são originais e baseadas na documentação oficial. A moldura segue o <a href="' + esc(CERT.sandbox) + '" target="_blank" rel="noopener">sandbox oficial das provas do GitHub</a>: uma única seção, sem estudo de caso, com questões de múltipla escolha, Drag and Drop, Build List Reorder e Active Screen.</p></div>' +
+      '</section>';
+
+    var levels = groups.map(function (g) {
+      var doneN = g.banks.filter(function (b) { return store.history(b.id).length; }).length;
+      return '<section class="sh-level ' + g.ui.cls + '" data-level="' + esc(g.name) + '" aria-labelledby="lv-' + esc(g.ui.cls) + '">' +
+        '<header class="sh-level-h"><div><span class="sh-level-tag">Nível</span><h2 id="lv-' + esc(g.ui.cls) + '">' + esc(g.name) + '</h2>' + (g.ui.note ? '<p>' + esc(g.ui.note) + '</p>' : '') + '</div>' +
+        '<div class="sh-level-p"><span>' + doneN + ' de ' + g.banks.length + ' feitos</span><span class="sh-track" aria-hidden="true"><span style="width:' + (100 * doneN / g.banks.length).toFixed(1) + '%"></span></span></div></header>' +
+        '<div class="sh-grid">' + g.banks.map(bankCard).join('') + '</div></section>';
+    }).join('');
+
+    var maxW = Math.max.apply(null, CERT.domains.map(function (d) { return d.weight[1]; }));
+    var about = '<section class="sh-about" aria-labelledby="about-h"><h2 id="about-h">Sobre a prova e a pontuação</h2><div class="sh-about-grid">' +
+      '<article class="sh-info">' + ico('clock') + '<h3>Duração e formato</h3><p>A GH-300 tem <strong>100 minutos</strong>. O número de questões não é publicado na página do exame; o GitHub descreve suas provas como cerca de 60 questões pontuadas mais itens de pré-teste não pontuados, que não dá para identificar. Os simulados completos daqui têm 60 questões.</p></article>' +
+      '<article class="sh-info">' + ico('target') + '<h3>Pontuação</h3><p>Este simulador mostra o <strong>aproveitamento em %</strong>, com crédito parcial nos itens de várias partes. A prova real usa uma <strong>escala de 1 a 1000</strong> e exige <strong>700</strong> para aprovação; a conversão a partir dos acertos <strong>não é pública</strong>. Portanto, 70% aqui não equivale a 700 na prova.</p></article>' +
+      '<article class="sh-info sh-domains">' + ico('grid') + '<h3>Domínios e pesos</h3><ul>' + CERT.domains.map(function (d) {
+        return '<li><span>' + d.d + '. ' + esc(d.name) + '</span><span class="sh-w">' + d.weight[0] + '–' + d.weight[1] + '%</span><span class="sh-track" aria-hidden="true"><span style="width:' + (100 * d.weight[1] / maxW).toFixed(1) + '%"></span></span></li>';
+      }).join('') + '</ul></article>' +
+      '</div></section>';
+
+    return '<div class="start-screen"><div class="sh-wrap">' + hero +
+      (ui.notice ? '<p class="sh-notice" role="status">' + ico('info') + '<span>' + esc(ui.notice) + '</span></p>' : '') +
+      resume + setup + levels + about + '</div>' +
       (ui.modal ? renderModal() : '') +
       '</div>';
   }

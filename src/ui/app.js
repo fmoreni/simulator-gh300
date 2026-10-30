@@ -107,30 +107,48 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     return d.toLocaleDateString(GHX.locale()) + ' ' + d.toLocaleTimeString(GHX.locale(), { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Tela inicial: estilos isolados em .start-screen (classes sh-*), sem tocar nas classes
+  // compartilhadas com a prova (.card, .btn etc.). As ações continuam pelos mesmos data-act.
+  function ico(name) { return GHX.Dashboard.icon(name); }
+  function pctTxt(x) { return String(x).replace('.', ',') + '%'; }
+  var LEVEL_UI = {
+    'Iniciante': { cls: 'sh-lv-1', note: 'Fundamentos, conceitos essenciais e uso básico.' },
+    'Intermediário': { cls: 'sh-lv-2', note: 'Cenários reais de desenvolvimento e aplicação prática.' },
+    'Avançado': { cls: 'sh-lv-3', note: 'Cenários corporativos, governança, arquitetura e escolha da melhor abordagem.' },
+  };
+
   function bankCard(b) {
     var st = GHX.bankStats(b);
     var active = store.active(b.id);
     var hist = store.history(b.id);
     var last = hist[0];
+    var best = hist.length ? Math.max.apply(null, hist.map(function (a) { return a.result.pct; })) : null;
+    var num = b.dynamic ? ico('shuffle') : esc((b.title.match(/\d+/) || [''])[0]);
+    var status = active ? '<span class="sh-status sh-st-run">' + ico('clock') + 'Em andamento</span>'
+      : best != null ? '<span class="sh-status sh-st-done">' + ico('check') + 'Melhor ' + pctTxt(best) + '</span>'
+        : '<span class="sh-status sh-st-new">Não iniciado</span>';
     var actions = [];
-    if (active) actions.push('<button class="btn primary" data-act="continue" data-bank="' + b.id + '" data-k="cont-' + b.id + '">Continuar (' + (active.mode === 'exam' ? 'exame' : 'estudo') + (active.lang === 'en' ? ', English' : '') + ')</button>');
-    actions.push('<button class="btn' + (active ? '' : ' primary') + '" data-act="start" data-mode="exam" data-bank="' + b.id + '" data-k="exam-' + b.id + '">Modo exame</button>');
-    actions.push('<button class="btn" data-act="start" data-mode="study" data-bank="' + b.id + '" data-k="study-' + b.id + '">Modo estudo</button>');
-    if (last) actions.push('<button class="btn ghost" data-act="report" data-id="' + last.id + '" data-k="rep-' + b.id + '">Ver relatório</button>');
-    if (active) actions.push('<button class="btn ghost" data-act="discard" data-bank="' + b.id + '" data-k="disc-' + b.id + '">Descartar tentativa</button>');
-    return '<article class="card bank" data-bank-card="' + b.id + '">' +
-      '<header><h3>' + esc(b.title) + '</h3><p class="sub">' + esc(b.subtitle) + '</p></header>' +
-      '<p>' + esc(b.blurb) + '</p>' +
-      '<dl class="facts">' +
-      '<div><dt>Questões</dt><dd>' + st.count + '</dd></div>' +
-      '<div><dt>Tempo</dt><dd>' + b.minutes + ' min</dd></div>' +
-      '<div><dt>Formato</dt><dd>' + esc(sectionList(b)) + '</dd></div>' +
-      '<div class="wide"><dt>Tipos de item</dt><dd>' + esc(typeList(b)) + '</dd></div>' +
+    if (active) actions.push('<button type="button" class="sh-btn sh-btn-primary" data-act="continue" data-bank="' + b.id + '" data-k="cont-' + b.id + '">' + ico('play') + 'Continuar (' + (active.mode === 'exam' ? 'exame' : 'estudo') + (active.lang === 'en' ? ', English' : '') + ')</button>');
+    actions.push('<button type="button" class="sh-btn ' + (active ? 'sh-btn-soft' : 'sh-btn-primary') + '" data-act="start" data-mode="exam" data-bank="' + b.id + '" data-k="exam-' + b.id + '">' + ico('clock') + 'Modo exame</button>');
+    actions.push('<button type="button" class="sh-btn sh-btn-soft" data-act="start" data-mode="study" data-bank="' + b.id + '" data-k="study-' + b.id + '">' + ico('book') + 'Modo estudo</button>');
+    var extraActions = [];
+    if (last) extraActions.push('<button type="button" class="sh-link" data-act="report" data-id="' + last.id + '" data-k="rep-' + b.id + '">' + ico('doc') + 'Ver relatório</button>');
+    if (active) extraActions.push('<button type="button" class="sh-link sh-link-danger" data-act="discard" data-bank="' + b.id + '" data-k="disc-' + b.id + '">' + ico('trash') + 'Descartar tentativa</button>');
+    return '<article class="sh-bank' + (b.dynamic ? ' sh-bank-mix' : '') + '" data-bank-card="' + b.id + '">' +
+      '<header class="sh-bank-h"><span class="sh-num" aria-hidden="true">' + num + '</span><div><h3>' + esc(b.title) + '</h3><p>' + esc(b.subtitle) + '</p></div></header>' +
+      '<div class="sh-bank-s">' + status + '</div>' +
+      '<p class="sh-blurb">' + esc(b.blurb) + '</p>' +
+      '<ul class="sh-facts">' +
+      '<li>' + ico('list') + '<span><strong>' + st.count + '</strong> questões</span></li>' +
+      '<li>' + ico('clock') + '<span><strong>' + b.minutes + '</strong> min</span></li>' +
+      '<li>' + ico('layers') + '<span>' + esc(sectionList(b)) + '</span></li>' +
+      '</ul>' +
+      '<p class="sh-types"><span class="sh-sr">Tipos de item: </span>' + esc(typeList(b)) + '</p>' +
       (b.dynamic ? mixFacts(b) : '') +
-      '</dl>' +
-      '<div class="actions">' + actions.join('') + '</div>' +
-      (hist.length ? '<details class="hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
-        return '<li><button class="link" data-act="report" data-id="' + a.id + '">' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + ' · <strong>' + a.result.pct + '%</strong></button></li>';
+      '<div class="sh-actions">' + actions.join('') + '</div>' +
+      (extraActions.length ? '<div class="sh-actions-2">' + extraActions.join('') + '</div>' : '') +
+      (hist.length ? '<details class="sh-hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
+        return '<li><button type="button" class="sh-link" data-act="report" data-id="' + a.id + '"><span>' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + '</span><strong>' + pctTxt(a.result.pct) + '</strong></button></li>';
       }).join('') + '</ul></details>' : '') +
       '</article>';
   }
@@ -142,48 +160,84 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     var u = mixUsage(b.id), runs = u.runs;
     var used = Object.keys(u.ids).length;
     var pool = GHX.Mixer.pool(b.level).length;
-    return '<div class="wide"><dt>Sorteio</dt><dd>' + runs + ' execuç' + (runs === 1 ? 'ão' : 'ões') + ' · ' + (pool - used) + ' de ' + pool + ' questões do nível ainda não sorteadas aqui</dd></div>';
+    var left = pool - used;
+    return '<div class="sh-mix"><div class="sh-mix-h"><span>' + ico('shuffle') + 'Sorteio</span><span>' + runs + ' execuç' + (runs === 1 ? 'ão' : 'ões') + ' · ' + left + ' de ' + pool + ' questões do nível ainda não sorteadas aqui</span></div>' +
+      '<span class="sh-track" aria-hidden="true"><span style="width:' + (100 * left / pool).toFixed(1) + '%"></span></span></div>';
   }
 
   function renderHome() {
-    // Agrupa por nível de dificuldade; bancos sem nível caem nas trilhas antigas.
-    var LEVELS = [
-      { name: 'Iniciante', note: 'Fundamentos, conceitos essenciais e uso básico.' },
-      { name: 'Intermediário', note: 'Cenários reais de desenvolvimento e aplicação prática.' },
-      { name: 'Avançado', note: 'Cenários corporativos, governança, arquitetura e escolha da melhor abordagem.' },
-    ];
     var all = GHX.listBanks();
-    var groups = LEVELS.map(function (l) {
-      return { name: l.name, note: l.note, banks: all.filter(function (b) { return b.level === l.name; }) };
+    var groups = ['Iniciante', 'Intermediário', 'Avançado'].map(function (name) {
+      return { name: name, ui: LEVEL_UI[name], banks: all.filter(function (b) { return b.level === name; }) };
     });
     var rest = all.filter(function (b) { return !b.level; });
     if (rest.length) {
-      groups.push({ name: 'Formato completo da prova', banks: rest.filter(function (b) { return b.track === 'full'; }) });
-      groups.push({ name: 'Treino por domínio', banks: rest.filter(function (b) { return b.track === 'practice'; }) });
+      groups.push({ name: 'Formato completo da prova', ui: { cls: 'sh-lv-2', note: '' }, banks: rest.filter(function (b) { return b.track === 'full'; }) });
+      groups.push({ name: 'Treino por domínio', ui: { cls: 'sh-lv-1', note: '' }, banks: rest.filter(function (b) { return b.track === 'practice'; }) });
     }
     groups = groups.filter(function (g) { return g.banks.length; });
     var extra = !!store.pref('extraTime');
     var lang = store.pref('lang') === 'en' ? 'en' : 'pt';
     var done = store.history().length;
-    return '<div class="home">' +
-      '<header class="home-h"><div><h1>Sala de prova GH-300</h1>' +
-      '<p class="sub">Simulados para o exame ' + esc(CERT.exam) + ' · domínios do guia de estudo oficial (skills measured as of ' + esc(CERT.asOf.split('-').reverse().join('/')) + ')</p></div>' +
-      '<div class="home-tools"><button class="btn" data-act="dash" data-k="home-dash">Painel de progresso' + (done ? ' (' + done + ')' : '') + '</button>' +
-      '<button class="btn ghost small" data-act="scheme" data-k="home-scheme">Color Scheme</button></div></header>' +
-      (ui.notice ? '<p class="notice" role="status">' + esc(ui.notice) + '</p>' : '') +
-      '<p class="disclaimer">Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. As questões são originais e baseadas na documentação oficial. A moldura segue o <a href="' + esc(CERT.sandbox) + '" target="_blank" rel="noopener">sandbox oficial das provas do GitHub</a>: uma única seção, sem estudo de caso, com questões de múltipla escolha, Drag and Drop, Build List Reorder e Active Screen.</p>' +
-      '<div class="lang-pick" role="radiogroup" aria-labelledby="lang-h"><span id="lang-h" class="lang-h">Idioma das questões:</span>' + GHX.LANGS.map(function (l) {
-        return '<label class="lang-opt' + (lang === l.id ? ' sel' : '') + '"><input type="radio" name="lang" data-act="lang" data-v="' + l.id + '" data-k="lang-' + l.id + '"' + (lang === l.id ? ' checked' : '') + '> ' + esc(l.label) + '</label>';
-      }).join('') + '<span class="small muted">A mesma prova, com as mesmas questões e o mesmo gabarito, nos dois idiomas. Vale para as próximas tentativas; a prova oficial é em inglês.</span></div>' +
-      '<label class="extra"><input type="checkbox" data-act="extra" data-k="extra"' + (extra ? ' checked' : '') + '> Acrescentar 30 minutos no modo exame (acomodação para quem não tem inglês como língua nativa)</label>' +
-      groups.map(function (g) {
-        return '<section data-level="' + esc(g.name) + '"><h2>' + esc(g.name) + '</h2>' + (g.note ? '<p class="sub">' + esc(g.note) + '</p>' : '') +
-          '<div class="grid">' + g.banks.map(bankCard).join('') + '</div></section>';
-      }).join('') +
-      '<section class="note"><h2>Sobre a prova e a pontuação</h2>' +
-      '<p>A GH-300 tem <strong>100 minutos</strong>. O número de questões não é publicado na página do exame; o GitHub descreve suas provas como cerca de 60 questões pontuadas mais itens de pré-teste não pontuados, que não dá para identificar. Os simulados completos daqui têm 60 questões.</p>' +
-      '<p>Este simulador mostra o <strong>aproveitamento em %</strong>, com crédito parcial nos itens de várias partes. A prova real usa uma <strong>escala de 1 a 1000</strong> e exige <strong>700</strong> para aprovação; a conversão a partir dos acertos <strong>não é pública</strong>. Portanto, 70% aqui não equivale a 700 na prova.</p>' +
-      '<p>Domínios e pesos: ' + CERT.domains.map(function (d) { return esc(d.name) + ' (' + d.weight[0] + '–' + d.weight[1] + '%)'; }).join(' · ') + '.</p></section>' +
+    var fixed = all.filter(function (b) { return !b.dynamic; });
+    var totalQ = fixed.reduce(function (n, b) { return n + GHX.bankItems(b).length; }, 0);
+    var actives = all.map(function (b) { var a = store.active(b.id); return a ? { b: b, a: a } : null; }).filter(Boolean);
+
+    var hero = '<header class="sh-hero">' +
+      '<div class="sh-hero-main"><span class="sh-badge">' + ico('copilot') + 'GitHub Copilot · ' + esc(CERT.exam.split(':')[0]) + '</span>' +
+      '<h1>Sala de prova GH-300</h1>' +
+      '<p>Simulados para o ' + esc(CERT.exam) + ', no formato da prova oficial e com os domínios do guia de estudo (skills measured as of ' + esc(CERT.asOf.split('-').reverse().join('/')) + ').</p>' +
+      '<ul class="sh-stats">' +
+      '<li><strong>' + all.length + '</strong><span>simulados</span></li>' +
+      '<li><strong>' + totalQ + '</strong><span>questões originais</span></li>' +
+      '<li><strong>' + CERT.minutes + '</strong><span>minutos por prova</span></li>' +
+      '<li><strong>' + CERT.passing + '</strong><span>para aprovação (de 1000)</span></li>' +
+      '</ul></div>' +
+      '<div class="sh-hero-actions">' +
+      '<button type="button" class="sh-btn sh-btn-light" data-act="dash" data-k="home-dash">' + ico('gauge') + 'Painel de progresso' + (done ? '<span class="sh-count">' + done + '</span>' : '') + '</button>' +
+      '<button type="button" class="sh-btn sh-btn-ghost" data-act="scheme" data-k="home-scheme">' + ico('sun') + 'Color Scheme</button>' +
+      '</div></header>';
+
+    var resume = actives.length ? '<section class="sh-resume" aria-label="Tentativas em andamento"><div class="sh-resume-h">' + ico('play') + '<strong>Continue de onde parou</strong></div><ul>' +
+      actives.map(function (x) {
+        var a = x.a, answered = Object.keys(a.answers || {}).length, total = S.total(a);
+        return '<li><span><strong>' + esc(x.b.title) + '</strong><small>' + (a.mode === 'exam' ? 'Modo exame' : 'Modo estudo') + (a.lang === 'en' ? ' · English' : '') + ' · ' + answered + ' de ' + total + ' respondidas</small></span>' +
+          '<button type="button" class="sh-btn sh-btn-primary" data-act="continue" data-bank="' + x.b.id + '" data-k="resume-' + x.b.id + '">' + ico('play') + 'Continuar</button></li>';
+      }).join('') + '</ul></section>' : '';
+
+    var setup = '<section class="sh-setup" aria-label="Preferências da prova">' +
+      '<div class="sh-pref"><div class="sh-pref-h">' + ico('globe') + '<strong id="lang-h">Idioma das questões</strong></div>' +
+      '<div class="sh-seg" role="radiogroup" aria-labelledby="lang-h">' + GHX.LANGS.map(function (l) {
+        return '<label class="sh-seg-opt' + (lang === l.id ? ' sel' : '') + '"><input type="radio" name="lang" data-act="lang" data-v="' + l.id + '" data-k="lang-' + l.id + '"' + (lang === l.id ? ' checked' : '') + '><span>' + esc(l.label) + '</span></label>';
+      }).join('') + '</div>' +
+      '<p>A mesma prova, com as mesmas questões e o mesmo gabarito, nos dois idiomas. Vale para as próximas tentativas; a prova oficial é em inglês.</p></div>' +
+      '<div class="sh-pref"><div class="sh-pref-h">' + ico('clock') + '<strong>Tempo extra</strong></div>' +
+      '<label class="sh-switch"><input type="checkbox" role="switch" data-act="extra" data-k="extra"' + (extra ? ' checked' : '') + '><span class="sh-switch-ui" aria-hidden="true"></span><span>Acrescentar 30 minutos no modo exame</span></label>' +
+      '<p>Acomodação para quem não tem inglês como língua nativa, como na prova oficial.</p></div>' +
+      '<div class="sh-pref sh-pref-info"><div class="sh-pref-h">' + ico('info') + '<strong>Sobre o simulador</strong></div>' +
+      '<p>Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. As questões são originais e baseadas na documentação oficial. A moldura segue o <a href="' + esc(CERT.sandbox) + '" target="_blank" rel="noopener">sandbox oficial das provas do GitHub</a>: uma única seção, sem estudo de caso, com questões de múltipla escolha, Drag and Drop, Build List Reorder e Active Screen.</p></div>' +
+      '</section>';
+
+    var levels = groups.map(function (g) {
+      var doneN = g.banks.filter(function (b) { return store.history(b.id).length; }).length;
+      return '<section class="sh-level ' + g.ui.cls + '" data-level="' + esc(g.name) + '" aria-labelledby="lv-' + esc(g.ui.cls) + '">' +
+        '<header class="sh-level-h"><div><span class="sh-level-tag">Nível</span><h2 id="lv-' + esc(g.ui.cls) + '">' + esc(g.name) + '</h2>' + (g.ui.note ? '<p>' + esc(g.ui.note) + '</p>' : '') + '</div>' +
+        '<div class="sh-level-p"><span>' + doneN + ' de ' + g.banks.length + ' feitos</span><span class="sh-track" aria-hidden="true"><span style="width:' + (100 * doneN / g.banks.length).toFixed(1) + '%"></span></span></div></header>' +
+        '<div class="sh-grid">' + g.banks.map(bankCard).join('') + '</div></section>';
+    }).join('');
+
+    var maxW = Math.max.apply(null, CERT.domains.map(function (d) { return d.weight[1]; }));
+    var about = '<section class="sh-about" aria-labelledby="about-h"><h2 id="about-h">Sobre a prova e a pontuação</h2><div class="sh-about-grid">' +
+      '<article class="sh-info">' + ico('clock') + '<h3>Duração e formato</h3><p>A GH-300 tem <strong>100 minutos</strong>. O número de questões não é publicado na página do exame; o GitHub descreve suas provas como cerca de 60 questões pontuadas mais itens de pré-teste não pontuados, que não dá para identificar. Os simulados completos daqui têm 60 questões.</p></article>' +
+      '<article class="sh-info">' + ico('target') + '<h3>Pontuação</h3><p>Este simulador mostra o <strong>aproveitamento em %</strong>, com crédito parcial nos itens de várias partes. A prova real usa uma <strong>escala de 1 a 1000</strong> e exige <strong>700</strong> para aprovação; a conversão a partir dos acertos <strong>não é pública</strong>. Portanto, 70% aqui não equivale a 700 na prova.</p></article>' +
+      '<article class="sh-info sh-domains">' + ico('grid') + '<h3>Domínios e pesos</h3><ul>' + CERT.domains.map(function (d) {
+        return '<li><span>' + d.d + '. ' + esc(d.name) + '</span><span class="sh-w">' + d.weight[0] + '–' + d.weight[1] + '%</span><span class="sh-track" aria-hidden="true"><span style="width:' + (100 * d.weight[1] / maxW).toFixed(1) + '%"></span></span></li>';
+      }).join('') + '</ul></article>' +
+      '</div></section>';
+
+    return '<div class="start-screen"><div class="sh-wrap">' + hero +
+      (ui.notice ? '<p class="sh-notice" role="status">' + ico('info') + '<span>' + esc(ui.notice) + '</span></p>' : '') +
+      resume + setup + levels + about + '</div>' +
       (ui.modal ? renderModal() : '') +
       '</div>';
   }
