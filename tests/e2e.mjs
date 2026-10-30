@@ -550,20 +550,25 @@ async function run() {
   assert.match(await text('.dash h1'), /Painel de progresso/);
   assert.match(await text('.kpis'), /Simulados concluídos\s*2\s*de 12/);
   assert.match(await text('.kpis'), /1 em português · 1 em inglês/);
-  const an = await evaluate(`GHX.Progress.summary(GHX.App.store.history(), GHX.listBanks()).analysis`);
-  assert.equal(an.coverage, 6);
-  assert.equal(an.overall.n, 60 + 60, 'duas tentativas de exame em simulados diferentes');
-  assert.equal(await evaluate(`document.querySelector('[data-readiness]').getAttribute('data-readiness')`), String(an.readiness));
-  assert.match(await text('.hero'), /Cobertura: 6 de 6 domínios/);
-  assert.match(await text('.hero'), /Ainda não há evidência suficiente para agendar/);
-  assert.equal(await evaluate(`document.querySelectorAll('.chart .ch-pt').length`), 2);
+  const an = await evaluate(`(() => { const a = GHX.Progress.summary(GHX.App.store.history(), GHX.listBanks()).analysis; return { n: a.overall.n, cov: a.coverage, conf: a.confidence, state: a.state.key, idx: a.index, nb: a.nBanks }; })()`);
+  assert.equal(an.n, 120, 'duas tentativas de exame em simulados diferentes');
+  assert.equal(an.nb, 2);
+  assert.notEqual(an.state, 'ready', 'dois simulados não bastam para recomendar a prova');
+  assert.equal(await evaluate(`document.querySelector('[data-state]').getAttribute('data-state')`), an.state);
+  assert.equal(await evaluate(`document.querySelector('[data-coverage]').getAttribute('data-coverage')`), String(an.cov));
+  assert.equal(await evaluate(`document.querySelector('[data-confidence]').getAttribute('data-confidence')`), String(an.conf));
+  assert.match(await text('.hero2'), /Critérios para "Pronto para agendar"/);
+  assert.match(await text('.missing'), /O que falta para eu estar preparado\?/);
+  assert.match(await text('.missing'), /cobertura oficial de/);
+  assert.equal(await evaluate(`document.querySelectorAll('.hbars.obj li').length`), 14);
+  assert.ok(await evaluate(`document.querySelectorAll('.matrix tbody tr').length`) >= 28);
+  assert.match(await text('.matrix'), /Não avaliado/);
+  assert.equal(await evaluate(`document.querySelectorAll('.chart').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.chart')[0].querySelectorAll('.ch-pt').length`), 2);
   assert.equal(await evaluate(`document.querySelectorAll('.hist-table tbody tr').length`), 2);
-  assert.equal(await evaluate(`document.querySelectorAll('.dash-grid:first-of-type .hbars:first-of-type li').length`), 6);
   assert.equal(await evaluate(`document.querySelectorAll('.hbars.rw li').length`), 7);
-  assert.ok(await evaluate(`document.querySelectorAll('.tp-cols .hbars li').length`) >= 2);
-  assert.match(await text('.study'), /Prioridade alta/);
   await evaluate(`document.querySelector('.ch-pt').dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))`);
-  assert.match(await evaluate(`(document.querySelector('.ch-tip:not([hidden])') || {}).textContent || ''`), /Após Simulado 04.*preparação/);
+  assert.match(await evaluate(`(document.querySelector('.ch-tip:not([hidden])') || {}).textContent || ''`), /Após Simulado 04.*desempenho/);
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: await evaluate('document.documentElement.scrollHeight'), deviceScaleFactor: 1, mobile: false });
   await shot('14-dashboard');
   await cdp.send('Emulation.clearDeviceMetricsOverride');
@@ -573,7 +578,7 @@ async function run() {
   await waitFor(`document.querySelector('.home')`);
   assert.equal(await evaluate(`document.documentElement.lang`), 'pt-BR');
   await click('input[data-act="lang"][data-v="pt"]');
-  step('painel de progresso: preparação estimada, cobertura, domínios, acertos/erros, subtemas, plano de estudo e histórico');
+  step('painel: desempenho, cobertura oficial e confiança separados, estado da recomendação, o que falta, objetivos, matriz de assuntos e evolução');
 
   // Celular
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });

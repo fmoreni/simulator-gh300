@@ -7,6 +7,7 @@ export const CORE = [
   'src/core/session.js',
   'src/core/storage.js',
   'src/core/progress.js',
+  'src/core/objectives.js',
 ];
 
 export const BANKS = [

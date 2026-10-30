@@ -481,93 +481,128 @@ test('progresso: consolida tentativas, domínios, questões dominadas e recomend
   assert.equal(empty.next.id, bank.id);
 });
 
-// ---------- prontidão por domínio e subtema ----------
+// ---------- avaliação progressiva de prontidão ----------
 
-function attemptOn(bankId, mode, pick, at) {
+const H = 3600000;
+const rand = S.seeded(99);
+// Tentativa de exame em um banco real; p = chance de acertar cada questão (por domínio, opcional).
+function attemptOn(bankId, p, at, opts = {}) {
   const b = GHX.getBank(bankId);
-  const att = S.create(b, { mode, now: at, rng: S.seeded(2) });
+  const att = S.create(b, { mode: opts.mode || 'exam', now: at, rng: S.seeded(2) });
   S.start(att, at);
   for (const it of GHX.bankItems(b)) {
-    const v = pick(it);
-    if (v === 'right') att.answers[it.id] = structuredClone(it.a);
-    else if (v === 'wrong' && it.type === 'single') att.answers[it.id] = (it.a + 1) % it.o.length;
+    const pi = typeof p === 'function' ? p(it) : (opts.dom && it.d in opts.dom ? opts.dom[it.d] : p);
+    if (pi === null) continue;
+    if (pi >= 1 || rand() < pi) att.answers[it.id] = structuredClone(it.a);
+    else if (opts.mode === 'study' && it.type === 'single') att.answers[it.id] = (it.a + 1) % it.o.length;
   }
   S.finish(att, at + MIN, 'submitted');
   return att;
 }
 const realBanks = () => GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id));
+const ids = () => realBanks().map((b) => b.id);
+const analyze = (list) => GHX.Progress.analyze(list, realBanks());
 
-test('prontidão: pesos 10/17/8/8/8/9, fórmula ponderada e status por domínio', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
-  const a = attemptOn('gh300-practice-a', 'exam', (it) => (it.d <= 2 ? 'right' : 'none'), 1000);
-  const an = GHX.Progress.analyze([a], realBanks());
-  const d = (n) => an.domains[n - 1];
-  assert.deepEqual(an.domains.map((x) => Math.round(x.weight * 60)), [10, 17, 8, 8, 8, 9]);
-  assert.equal(d(1).pct, 100);
-  assert.equal(d(1).correct, 10);
-  assert.equal(d(3).pct, 0, 'no modo exame, sem resposta conta como erro');
-  assert.equal(d(3).wrong, 8);
-  assert.equal(an.coverage, 6);
-  assert.equal(an.readiness, Math.round(((10 + 17) / 60) * 1000) / 10);
-  assert.equal(d(1).status.label, 'Excelente domínio');
-  assert.equal(d(3).status.label, 'Prioridade de estudo');
-  assert.equal(an.ready.label, 'Preparação insuficiente');
-  assert.equal(an.overall.n, 60);
-  assert.equal(an.overall.correct, 27);
+test('matriz oficial: 6 domínios, 14 objetivos e 41 subobjetivos, todos com questões no banco', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  assert.equal(GHX.OBJECTIVES.length, 14);
+  assert.equal(GHX.SUBOBJECTIVES.length, 41);
+  assert.deepEqual([...new Set(GHX.OBJECTIVES.map((o) => o.d))], [1, 2, 3, 4, 5, 6]);
+  const count = {};
+  let fallback = 0;
+  for (const it of realBanks().flatMap((b) => GHX.bankItems(b))) {
+    const m = GHX.subObjectivesOf(it);
+    assert.ok(m.ids.length >= 1 && m.ids.length <= 2, 'sem subobjetivo: ' + it.id);
+    for (const id of m.ids) { assert.equal(GHX.subObjective(id).d, it.d, 'subobjetivo de outro domínio em ' + it.id); count[id] = (count[id] || 0) + 1; }
+    if (m.fallback) fallback++;
+  }
+  for (const so of GHX.SUBOBJECTIVES) assert.ok((count[so.id] || 0) >= 3, 'poucas questões no banco para ' + so.id);
+  assert.ok(fallback / 720 < 0.2, 'associações por padrão demais: ' + fallback);
+  assert.deepEqual(GHX.Progress.topicsOf(GHX.getItem('pa-c1')), ['Model Context Protocol (MCP)']);
 });
 
-test('prontidão: domínio sem questões fica "Não avaliado" e os pesos são renormalizados', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
-  // Modo estudo: só as respondidas contam. Responde certo D1 e errado D2 (só as de escolha única).
-  const a = attemptOn('gh300-practice-a', 'study', (it) => (it.d === 1 ? 'right' : it.d === 2 ? 'wrong' : 'none'), 1000);
-  const an = GHX.Progress.analyze([a], realBanks());
-  assert.equal(an.coverage, 2);
-  assert.equal(an.partial, true);
-  assert.equal(an.domains[2].n, 0);
+test('cenário A: um simulado com 100% → desempenho 100%, confiança limitada, sem recomendar a prova', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const an = analyze([attemptOn(ids()[0], 1, 0)]);
+  assert.equal(an.overall.pct, 100);
+  assert.equal(an.performance, 100);
+  assert.equal(an.confidenceBand.label, 'Limitada');
+  assert.ok(an.confidence <= GHX.Progress.CONFIG.confidenceSingleCap);
+  assert.ok(an.coverage < 50, 'um simulado não cobre os objetivos oficiais: ' + an.coverage);
+  assert.equal(an.consistency, null, 'consistência exige simulados diferentes');
+  assert.equal(an.retention, null);
+  assert.equal(an.provisional, true);
+  assert.equal(an.state.key, 'initial');
+  assert.match(an.state.msg, /desempenho inicial é positivo/);
+  assert.ok(an.gaps.groups.some((g) => /não avaliados/.test(g.title)));
+  assert.ok(an.gaps.next && an.gaps.next.n > 0, 'sugere o próximo simulado');
+});
+
+test('cenário B: três simulados com ~90% e cobertura insuficiente → bom desempenho, pede mais cobertura', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const an = analyze(ids().slice(0, 3).map((b, i) => attemptOn(b, 0.9, i * 30 * H)));
+  assert.ok(an.overall.pct >= 85);
+  assert.ok(an.coverage < GHX.Progress.CONFIG.ready.coverage);
+  assert.notEqual(an.state.key, 'ready');
+  assert.equal(an.checks.find((c) => c.key === 'coverage').ok, false);
+  assert.ok(an.subs.some((x) => x.coverage !== 'covered'), 'lista objetivos não avaliados');
+});
+
+test('cenário C: quatro simulados com boa cobertura e consistência → avalia os critérios de prontidão', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const all = ids();
+  const an = analyze([all[0], all[3], all[6], all[9]].map((b, i) => attemptOn(b, 1, i * 30 * H)));
+  assert.equal(an.consistency, 100);
+  assert.ok(an.coverage >= 85, 'cobertura ' + an.coverage);
+  assert.ok(an.confidence >= 70);
+  assert.ok(an.checks.every((c) => c.ok), an.checks.filter((c) => !c.ok).map((c) => c.key).join());
+  assert.equal(an.state.key, 'ready');
+  // O mesmo volume com um domínio fraco não passa.
+  const weak = analyze([all[0], all[3], all[6], all[9]].map((b, i) => attemptOn(b, (it) => (it.d === 4 ? 0.5 : 1), i * 30 * H)));
+  assert.notEqual(weak.state.key, 'ready');
+});
+
+test('cenário D: seis simulados com média alta e um domínio em 60% → domínio crítico, sem recomendar a prova', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const an = analyze(ids().slice(0, 6).map((b, i) => attemptOn(b, (it) => (it.d === 3 ? 0.6 : 0.97), i * 30 * H)));
+  assert.ok(an.overall.pct >= 88);
+  const d3 = an.domains[2];
+  assert.ok(d3.pct < 75 && d3.enough);
+  assert.ok(an.lowDomains.some((d) => d.d === 3));
+  assert.notEqual(an.state.key, 'ready');
+  assert.equal(an.checks.find((c) => c.key === 'domains').ok, false);
+  assert.ok(an.gaps.groups.some((g) => g.items.some((i) => /^3\. /.test(i))), 'reforço direcionado ao domínio 3');
+  assert.ok(an.plan.high.concat(an.plan.mid).some((c) => c.kind === 'domain' && c.s.d === 3));
+});
+
+test('cenário E: o mesmo simulado repetido não aumenta a confiança nem duplica questões', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const b = ids()[0];
+  const once = analyze([attemptOn(b, (it) => (it.d === 1 ? 1 : 0.5), 0)]);
+  const reps = [attemptOn(b, (it) => (it.d === 1 ? 1 : 0.5), 0)].concat([1, 2, 3, 4].map((i) => attemptOn(b, 1, i * MIN)));
+  const many = analyze(reps);
+  assert.equal(many.overall.n, 60);
+  assert.equal(many.evaluations, 300);
+  assert.equal(many.repeatedQuestions, 60);
+  assert.equal(many.confidence, once.confidence);
+  assert.equal(many.coverage, once.coverage);
+  assert.equal(many.retention, null, 'repetição imediata não mede retenção');
+  assert.ok(many.domains[1].delta > 0, 'a evolução aparece nas repetições');
+  assert.equal(many.timeline.length, 5);
+});
+
+test('retenção usa repetições com 24 h ou mais; consistência mede a variação entre simulados', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const b = ids()[0];
+  const an = analyze([attemptOn(b, 1, 0), attemptOn(b, (it) => (it.d <= 3 ? 1 : 0), 30 * H)]);
+  assert.equal(an.retentionItems, 60);
+  const exp = Math.round(an.subs.length && (100 * GHX.bankItems(GHX.getBank(b)).filter((it) => it.d <= 3).length / 60) * 10) / 10;
+  assert.equal(an.retention, exp);
+  const two = analyze([attemptOn(ids()[0], 1, 0), attemptOn(ids()[1], (it) => 0, H)]);
+  assert.equal(two.consistency, 0, 'simulados com 100% e 0% são inconsistentes');
+});
+
+test('modo estudo: só as respondidas contam; domínio sem respostas fica "Não avaliado"', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const an = analyze([attemptOn(ids()[0], (it) => (it.d === 1 ? 1 : null), 0, { mode: 'study' })]);
+  assert.equal(an.overall.n, 10);
+  assert.equal(an.domainsEvaluated, 1);
   assert.equal(an.domains[2].pct, null);
   assert.equal(an.domains[2].status, null);
-  const d2 = an.domains[1];
-  const exp = (10 / 60 * 1 + 17 / 60 * (d2.correct / d2.n)) / (27 / 60) * 100;
-  assert.equal(an.readiness, Math.round(exp * 10) / 10);
-});
-
-test('prontidão: repetições usam a primeira resposta e aparecem como evolução', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
-  const a1 = attemptOn('gh300-practice-a', 'exam', (it) => (it.d === 1 ? 'right' : 'none'), 1000);
-  const a2 = attemptOn('gh300-practice-a', 'exam', () => 'right', 2000);
-  const an = GHX.Progress.analyze([a1, a2], realBanks());
-  assert.equal(an.overall.n, 60, 'a mesma questão não conta duas vezes');
-  assert.equal(an.evaluations, 120);
-  assert.equal(an.repeatedQuestions, 60);
-  assert.equal(an.domains[0].pct, 100);
-  assert.equal(an.domains[1].pct, 0);
-  assert.equal(an.domains[1].latestPct, 100);
-  assert.equal(an.domains[1].delta, 100);
-  assert.equal(an.domains[0].attempts, 2);
-  assert.equal(an.timeline.length, 2);
-  assert.equal(an.timeline[0].readiness, an.timeline[1].readiness, 'a repetição não muda o indicador principal');
-});
-
-test('prontidão: recomendação para agendar exige 85%, 6 domínios, piso de 75% e amostra mínima', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
-  const one = GHX.Progress.analyze([attemptOn('gh300-practice-a', 'exam', () => 'right', 1000)], realBanks());
-  assert.equal(one.readiness, 100);
-  assert.equal(one.schedule.ok, false, 'domínios com 8 questões ainda não têm amostra mínima');
-  assert.deepEqual(one.schedule.checks.map((c) => c.ok), [true, true, true, false]);
-  const two = GHX.Progress.analyze([
-    attemptOn('gh300-practice-a', 'exam', () => 'right', 1000),
-    attemptOn('gh300-s07', 'exam', () => 'right', 2000),
-  ], realBanks());
-  assert.equal(two.schedule.ok, true);
-  assert.ok(two.domains.every((d) => d.n >= GHX.Progress.MIN_DOMAIN));
-});
-
-test('prontidão: subtemas vêm dos links oficiais, sem status quando a amostra é pequena', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
-  assert.deepEqual(GHX.Progress.topicsOf(GHX.getItem('pa-c1')), ['Model Context Protocol (MCP)']);
-  const covered = realBanks().flatMap((b) => GHX.bankItems(b)).filter((it) => GHX.Progress.topicsOf(it).length).length;
-  assert.ok(covered >= 715, 'quase todas as questões têm subtema: ' + covered);
-  const a = attemptOn('gh300-practice-a', 'exam', (it) => (GHX.Progress.topicsOf(it).includes('Content exclusion') ? 'none' : 'right'), 1000);
-  const an = GHX.Progress.analyze([a], realBanks());
-  const ce = an.topics.find((t) => t.name === 'Content exclusion');
-  assert.equal(ce.pct, 0);
-  assert.ok(ce.enough && ce.status.label === 'Prioridade de estudo');
-  assert.ok(an.plan.high.some((c) => c.name === 'Content exclusion'));
-  assert.equal(an.focus.name, 'Content exclusion');
-  for (const t of an.topics.filter((x) => !x.enough)) assert.equal(t.status, null);
+  assert.equal(an.performance, 100, 'pesos renormalizados sobre os domínios avaliados');
+  const t = an.topics.find((x) => x.evidence === 'limited');
+  assert.ok(t && t.status === null, 'evidência limitada não recebe status');
+  assert.ok(an.topics.some((x) => x.evidence === 'none' && x.pct === null));
 });

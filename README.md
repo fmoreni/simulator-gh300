@@ -6,7 +6,7 @@ Simulador de provas para a certificação **GH-300: GitHub Copilot**. São **12 
 
 - **A mesma prova em português ou em inglês:** as 720 questões têm versão em inglês, com os mesmos ids, gabaritos e ordem. Os termos seguem a documentação oficial em inglês, como na prova real.
 - Interface em português; a moldura da prova (botões, avisos e telas) fica em inglês, como na prova real.
-- **Painel de progresso e prontidão:** preparação estimada para a GH-300, desempenho por domínio e por subtema, evolução e o que estudar agora.
+- **Painel de progresso e prontidão:** desempenho, cobertura dos objetivos oficiais e confiança na avaliação, com recomendação progressiva para agendar a prova.
 - Funciona offline, em um único arquivo HTML, sem instalar nada.
 - Modo exame com cronômetro e modo estudo com correção e explicação em cada questão.
 - Relatório com aproveitamento por domínio, gabarito comentado e links para a documentação oficial.
@@ -64,21 +64,33 @@ A prova oficial é aplicada em inglês. Para treinar nessas condições, escolha
 
 ### Painel de progresso e prontidão
 
-Funciona desde o primeiro simulado concluído e usa todos os simulados, de qualquer nível, sem exigir que você faça todos. Tudo é recalculado automaticamente a cada conclusão.
+Funciona desde o primeiro simulado concluído, usa todos os simulados (de qualquer nível) e fica mais confiável a cada simulado diferente. Não é preciso fazer os 12. Três indicadores independentes:
 
-- **Preparação estimada GH-300:** média do percentual de acertos de cada domínio, ponderada pela distribuição dos simulados (10/17/8/8/8/9 de 60). Domínio sem questões avaliadas fica como **Não avaliado** e os pesos dos demais são renormalizados; o painel mostra a cobertura (por exemplo, 4 de 6 domínios, avaliação parcial).
-- **Faixas de prontidão:** 90%+ preparação elevada, 80% boa, 70% intermediária, 60% necessita reforço e abaixo disso insuficiente.
-- **Recomendação para a prova:** "Bom indicativo para agendar a GH-300" aparece quando a preparação é de 85% ou mais, os 6 domínios foram avaliados, nenhum está abaixo de 75% e cada domínio tem pelo menos 10 questões avaliadas. O painel mostra quais critérios faltam.
-- **Por domínio:** questões, acertos, erros, desempenho, peso, simulados que avaliaram o domínio, evolução e status (Excelente domínio, Bom domínio, Em desenvolvimento, Precisa melhorar, Prioridade de estudo).
-- **Por subtema** (MCP, Copilot CLI, content exclusion, code review, Spaces, hooks, técnicas de prompt etc.): definido pelos links de documentação oficial de cada questão. Subtemas com menos de 5 questões avaliadas não recebem status.
-- **Gráficos:** desempenho por domínio, evolução da preparação após cada simulado, acertos e erros (total e por domínio) e melhores e piores subtemas.
-- **O que devo estudar agora?** Temas em prioridade alta (abaixo de 70%), média (70% a 85%) e bom desempenho (85% ou mais), ordenados por percentual, peso do domínio, erros, quantidade avaliada e evolução recente.
-- Também mostra a situação de cada simulado por nível e o histórico de tentativas, com link para cada relatório.
+- **Desempenho:** quanto você acertou nas questões distintas.
+- **Cobertura oficial:** quanto dos **41 subobjetivos** do guia de estudo da GH-300 (*Skills measured as of August 7, 2026*, 14 objetivos em 6 domínios) já foi avaliado. Um subobjetivo conta como avaliado com pelo menos 3 questões distintas respondidas; o resultado é ponderado pelo peso do domínio. Faixas: baixa (< 50%), parcial (50–69%), boa (70–84%) e ampla (85%+).
+- **Confiança na avaliação:** suficiência das evidências — questões distintas, simulados diferentes, cobertura, consistência e diversidade de assuntos. Com um só simulado, a confiança fica no máximo "Limitada", mesmo com 100% de acertos.
+
+O **índice de prontidão** (0–100) combina desempenho por domínio (35%), cobertura (25%), consistência entre simulados diferentes (20%), volume de questões distintas (10%, com curva de saturação) e retenção (10%, questões refeitas 24 h ou mais depois). Componente sem dados aparece como **indisponível** e o índice fica marcado como provisório.
+
+A recomendação tem quatro estados: **Evidência inicial**, **Preparação em desenvolvimento**, **Boa evidência de preparação** e **Pronto para agendar**. "Pronto para agendar" exige, ao mesmo tempo:
+- índice de prontidão de 85 ou mais;
+- cobertura oficial de 85% ou mais;
+- desempenho geral de 85% ou mais;
+- todos os domínios com amostra suficiente (10+ questões) e pelo menos 75%;
+- resultados consistentes entre simulados diferentes;
+- nenhuma lacuna crítica (objetivo sem avaliação, domínio abaixo de 60% ou subobjetivo avaliado abaixo de 50%);
+- confiança de 70 ou mais.
+
+O painel mostra cada critério atendido ou não e, em **"O que falta para eu estar preparado?"**, lista domínios críticos, assuntos com desempenho baixo, objetivos não avaliados ou com poucas questões, assuntos a confirmar e o simulado que mais amplia a cobertura.
+
+Também traz: evolução do desempenho e da confiança, cobertura de cada objetivo oficial (e tabela dos 41 subobjetivos), desempenho por domínio, **matriz de assuntos** (questões no banco, respondidas, acertos, desempenho, simulados, evidência — nenhuma, limitada ou suficiente — e situação), melhores e piores assuntos, acertos e erros, composição dos indicadores, "O que devo estudar agora?", simulados por nível e histórico.
 
 Como é contado:
 - Acerto é a questão totalmente correta; resposta parcial conta como erro. Por isso o painel pode mostrar menos que o relatório, que dá crédito parcial.
 - No modo exame, todas as questões da tentativa são avaliadas (sem resposta conta como erro); no modo estudo, só as respondidas.
-- O indicador usa a **primeira** resposta de cada questão. Refazer um simulado não conta a mesma questão de novo; a diferença para a última resposta aparece como evolução.
+- O indicador usa a **primeira** resposta de cada questão. Refazer um simulado não conta a mesma questão de novo nem aumenta a confiança; a diferença para a última resposta aparece como evolução e, com 24 h ou mais de intervalo, como retenção.
+- **Subtemas** vêm dos links de documentação oficial de cada questão. **Subobjetivos** vêm do domínio, do enunciado e desses links (regras em `src/core/objectives.js`); cerca de 15% das questões, sem combinação direta, ficam no subobjetivo padrão do seu subtema.
+- Todos os limites e pesos ficam em `GHX.Progress.CONFIG` e podem ser ajustados sem alterar os simulados.
 - As faixas e os pesos são critérios de estudo deste simulador, não parâmetros oficiais, e a estimativa não prevê a nota da prova.
 
 ### Regras iguais às da prova real
@@ -192,7 +204,8 @@ src/
     session.js        máquina de estados da tentativa (recebe now e rng)
     storage.js        localStorage com versão do formato e migração
     i18n.js           textos da interface em pt/en (GHX.t), tradução das questões (GHX.localize) e validação
-    progress.js       consolidação do histórico e prontidão por domínio e subtema
+    progress.js       histórico, desempenho, cobertura, confiança e índice de prontidão (CONFIG)
+    objectives.js     objetivos oficiais da GH-300 e associação das questões aos subobjetivos
   banks/
     _refs.js          links oficiais usados nas referências
     practice-a.js     Simulado 01      practice-b.js   Simulado 02      s03.js   Simulado 03
