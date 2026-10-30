@@ -68,7 +68,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     document.documentElement.lang = GHX.locale();
     hideTip();
     switch (ui.screen) {
-      case 'dash': html = GHX.Dashboard.render(GHX.Progress.summary(store.history(), GHX.listBanks())); break;
+      case 'dash': html = GHX.Dashboard.render(GHX.Progress.summary(store.history(), GHX.listBanks())) + (ui.modal ? renderModal() : ''); break;
       case 'pre': html = renderPre(); break;
       case 'exam': html = renderExam(); break;
       case 'report': html = renderReport(); break;
@@ -126,12 +126,23 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       '<div><dt>Tempo</dt><dd>' + b.minutes + ' min</dd></div>' +
       '<div><dt>Formato</dt><dd>' + esc(sectionList(b)) + '</dd></div>' +
       '<div class="wide"><dt>Tipos de item</dt><dd>' + esc(typeList(b)) + '</dd></div>' +
+      (b.dynamic ? mixFacts(b) : '') +
       '</dl>' +
       '<div class="actions">' + actions.join('') + '</div>' +
       (hist.length ? '<details class="hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
         return '<li><button class="link" data-act="report" data-id="' + a.id + '">' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + ' · <strong>' + a.result.pct + '%</strong></button></li>';
       }).join('') + '</ul></details>' : '') +
       '</article>';
+  }
+
+  // Execuções do simulado aleatório e questões do nível que ainda não foram sorteadas nele.
+  function mixUsage(bankId) { return (store.pref('mixUsage') || {})[bankId] || { runs: 0, ids: {} }; }
+
+  function mixFacts(b) {
+    var u = mixUsage(b.id), runs = u.runs;
+    var used = Object.keys(u.ids).length;
+    var pool = GHX.Mixer.pool(b.level).length;
+    return '<div class="wide"><dt>Sorteio</dt><dd>' + runs + ' execuç' + (runs === 1 ? 'ão' : 'ões') + ' · ' + (pool - used) + ' de ' + pool + ' questões do nível ainda não sorteadas aqui</dd></div>';
   }
 
   function renderHome() {
@@ -539,6 +550,9 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function startAttempt(bankId, mode) {
     var b = GHX.getBank(bankId);
     store.discard(bankId);
+    // Simulado aleatório: nova seleção a cada execução, priorizando questões ainda não sorteadas.
+    // O registro do sorteio fica nas preferências, para valer mesmo se a tentativa for descartada.
+    if (b.dynamic) GHX.Mixer.refresh(b, mixUsage(b.id).ids);
     var att = S.create(b, { mode: mode, now: now(), lang: store.pref('lang'), extraTime: mode === 'exam' && !!store.pref('extraTime') });
     att.notes = {};
     ui.att = att;
@@ -549,6 +563,14 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     else { S.start(att, now()); ui.screen = 'exam'; }
     store.put(att);
     store.pref('current', att.id);
+    if (b.dynamic) {
+      var all = store.pref('mixUsage') || {};
+      var u = all[b.id] || { runs: 0, ids: {} };
+      u.runs++;
+      att.sections.forEach(function (sec) { sec.items.forEach(function (id) { u.ids[id] = (u.ids[id] || 0) + 1; }); });
+      all[b.id] = u;
+      store.pref('mixUsage', all);
+    }
     render();
   }
 
@@ -648,6 +670,15 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
           return;
         }
         if (m.then === 'discard') { store.discard(m.bank); render(); return; }
+        if (m.then === 'reset') {
+          store.resetProgress();
+          ui.att = null;
+          ui.screen = 'home';
+          ui.notice = 'Progresso zerado: o histórico, as tentativas em andamento e o painel foram apagados. As preferências foram mantidas.';
+          render();
+          window.scrollTo(0, 0);
+          return;
+        }
     }
     render();
   }
@@ -691,6 +722,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       case 'discard': ui.modal = { kind: 'confirm', title: 'Descartar tentativa', text: 'Descartar a tentativa em andamento? Esta ação não pode ser desfeita.', then: 'discard', bank: el.getAttribute('data-bank') }; render(); break;
       case 'report': showReport(el.getAttribute('data-id')); break;
       case 'home': ui.screen = 'home'; ui.reportId = null; render(); window.scrollTo(0, 0); break;
+      case 'reset-progress': ui.modal = { kind: 'confirm', title: 'Zerar progresso', text: 'Apagar <strong>todo o histórico</strong> de simulados, as tentativas em andamento e os indicadores do painel? Idioma, tema e tempo extra são mantidos. <strong>Esta ação não pode ser desfeita.</strong>', then: 'reset' }; render(); break;
       case 'dash': ui.screen = 'dash'; ui.reportId = null; ui.modal = null; render(); window.scrollTo(0, 0); break;
       case 'pre-accept': ui.pre = 1; render(); break;
       case 'pre-decline': ui.modal = null; store.discard(a.bankId); ui.att = null; ui.screen = 'home'; store.pref('current', null); render(); break;

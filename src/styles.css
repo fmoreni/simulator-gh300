@@ -597,3 +597,6 @@ pre.code {
   .hbars.obj li { grid-template-columns: minmax(0, 1fr) 60px 2.2rem; }
   .hbars.obj .hb-s { grid-column: 1 / -1; }
 }
+
+.btn.danger { border-color: var(--bad); color: var(--bad); background: transparent; }
+.btn.danger:hover { background: var(--bad-soft); }

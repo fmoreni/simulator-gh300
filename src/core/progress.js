@@ -50,7 +50,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       var weakest = rated.length ? rated.slice().sort(function (x, y) { return x.pct - y.pct; })[0] : null;
       var next = perBank.filter(function (p) { return !p.attempts; })[0] ||
         perBank.slice().sort(function (x, y) { return x.best - y.best; })[0] || null;
-      var itemsTotal = banks.reduce(function (n, b) { return n + GHX.bankItems(b).length; }, 0);
+      var fixed = banks.filter(function (b) { return !b.dynamic; });
+      var itemsTotal = fixed.reduce(function (n, b) { return n + GHX.bankItems(b).length; }, 0);
 
       return {
         attempts: done.length,
@@ -470,8 +471,10 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     return { groups: out, next: next && next.n ? next : null };
   }
 
-  GHX.Progress.analyze = function (done, banks, cert) {
+  GHX.Progress.analyze = function (done, allBanks, cert) {
     cert = cert || GHX.CERTS['GH-300'];
+    // Simulados aleatórios reutilizam questões dos fixos: não entram nas contagens do banco.
+    var banks = allBanks.filter(function (b) { return !b.dynamic; });
     var w = weights(banks, cert);
     var avail = availability(banks);
     var s = snapshot(done, banks, cert, w, avail);

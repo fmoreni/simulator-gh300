@@ -296,13 +296,14 @@ async function run() {
 
   // Início
   for (const level of ['Iniciante', 'Intermediário', 'Avançado']) {
-    assert.equal(await evaluate(`document.querySelectorAll('[data-level="${level}"] .card.bank').length`), 4, level);
+    assert.equal(await evaluate(`document.querySelectorAll('[data-level="${level}"] .card.bank').length`), 5, level);
   }
-  assert.equal(await evaluate(`document.querySelectorAll('.card.bank').length`), 12);
+  assert.equal(await evaluate(`document.querySelectorAll('.card.bank').length`), 15);
+  assert.match(await text('[data-bank-card="gh300-mix-adv"]'), /0 execuções · 240 de 240 questões do nível ainda não sorteadas/);
   assert.match(await text('.home'), /700/);
   assert.match(await text('.home'), /sem estudo de caso/);
   await shot('01-home');
-  step('tela inicial com 12 simulados agrupados por nível e nota sobre a prova e a pontuação');
+  step('tela inicial com 15 simulados (4 fixos e 1 aleatório por nível) e nota sobre a prova e a pontuação');
 
   // Pré-prova na sequência do sandbox oficial do GitHub
   await click('input[data-act="extra"]');
@@ -548,7 +549,7 @@ async function run() {
   await click('[data-act="dash"]');
   await waitFor(`document.querySelector('.dash')`);
   assert.match(await text('.dash h1'), /Painel de progresso/);
-  assert.match(await text('.kpis'), /Simulados concluídos\s*2\s*de 12/);
+  assert.match(await text('.kpis'), /Simulados concluídos\s*2\s*de 15/);
   assert.match(await text('.kpis'), /1 em português · 1 em inglês/);
   const an = await evaluate(`(() => { const a = GHX.Progress.summary(GHX.App.store.history(), GHX.listBanks()).analysis; return { n: a.overall.n, cov: a.coverage, conf: a.confidence, state: a.state.key, idx: a.index, nb: a.nBanks }; })()`);
   assert.equal(an.n, 120, 'duas tentativas de exame em simulados diferentes');
@@ -593,6 +594,42 @@ async function run() {
   assert.ok(overflow <= 0, 'rolagem horizontal no celular: ' + overflow);
   await shot('11-mobile');
   step('layout de celular (390 px) sem rolagem horizontal, com arrastar por toque');
+
+  await cdp.send('Emulation.clearDeviceMetricsOverride');
+
+  // Simulado aleatório: cada execução sorteia questões novas do mesmo nível
+  await click('[data-act="exit"]');
+  await confirmYes();
+  await waitFor(`document.querySelector('.home')`);
+  const runItems = [];
+  for (let run = 0; run < 2; run++) {
+    await click('[data-act="start"][data-mode="study"][data-bank="gh300-mix-int"]');
+    await waitFor(`document.querySelector('.exam')`);
+    const its = await app('a.sections[0].items');
+    assert.equal(its.length, 60);
+    assert.ok(await evaluate(`${JSON.stringify(its)}.every((id) => GHX.getBank(GHX.getItem(id).__bank).level === 'Intermediário')`));
+    runItems.push(its);
+    await click('[data-act="exit"]');
+    await confirmYes();
+    await waitFor(`document.querySelector('.home')`);
+  }
+  const repeated = runItems[1].filter((id) => runItems[0].includes(id)).length;
+  assert.ok(repeated <= 10, 'a segunda execução repetiu questões demais: ' + repeated);
+  step(`simulado aleatório: duas execuções com 60 questões do nível, ${60 - repeated} novas na segunda`);
+
+  // Zerar progresso
+  await click('[data-act="dash"]');
+  await waitFor(`document.querySelector('.dash')`);
+  await click('[data-act="reset-progress"]');
+  await waitFor(`/Zerar progresso/.test((document.querySelector('.modal') || {}).textContent || '')`);
+  await confirmYes();
+  await waitFor(`document.querySelector('.home .notice')`);
+  assert.match(await text('.notice'), /Progresso zerado/);
+  assert.equal(await evaluate(`GHX.App.store.history().length`), 0);
+  assert.equal(await evaluate(`Object.keys(GHX.App.store.data.active).length`), 0);
+  assert.equal(await evaluate(`GHX.App.store.pref('lang')`), 'pt');
+  assert.doesNotMatch(await text('.home'), /Histórico \(/);
+  step('Zerar progresso: confirmação, histórico e tentativas apagados, preferências mantidas');
 
   assert.deepEqual(errors, [], 'erros no console');
   step('nenhum erro de JavaScript no console');

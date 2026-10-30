@@ -276,7 +276,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     render: function (s) {
       var an = s.analysis;
       var head = '<header class="home-h"><div><h1>Painel de progresso</h1><p class="sub">Avaliação progressiva da sua preparação para a GH-300: desempenho, cobertura dos objetivos oficiais e confiança nas evidências.</p></div>' +
-        '<div class="home-tools"><button class="btn" data-act="home" data-k="dash-home">Voltar ao início</button></div></header>';
+        '<div class="home-tools"><button class="btn" data-act="home" data-k="dash-home">Voltar ao início</button>' +
+        '<button class="btn danger" data-act="reset-progress" data-k="dash-reset">Zerar progresso</button></div></header>';
       if (!s.attempts) {
         return '<div class="home dash">' + head + '<section class="card empty-dash"><h2>Nenhum simulado concluído ainda</h2>' +
           '<p>Os indicadores aparecem a partir do primeiro simulado concluído, no Modo exame ou no Modo estudo, e ficam mais confiáveis a cada simulado diferente. Não é preciso fazer todos os 12.</p>' +

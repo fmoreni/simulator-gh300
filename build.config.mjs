@@ -38,6 +38,7 @@ export const BANKS = [
   'src/banks/en/s10.js',
   'src/banks/en/s11.js',
   'src/banks/en/s12.js',
+  'src/banks/mix.js',       // 5º simulado de cada nível: sorteado a cada execução
 ];
 
 export const UI = [

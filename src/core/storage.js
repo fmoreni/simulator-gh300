@@ -112,6 +112,16 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   Store.prototype.clear = function () { this.data = empty(); this.flush(); };
 
+  // Apaga tentativas finalizadas e em andamento; mantém as preferências (idioma, tema etc.).
+  Store.prototype.resetProgress = function () {
+    var prefs = this.data.prefs || {};
+    delete prefs.current;
+    delete prefs.mixUsage;
+    this.data = empty();
+    this.data.prefs = prefs;
+    return this.flush();
+  };
+
   GHX.Storage = {
     KEY: KEY,
     VERSION: VERSION,

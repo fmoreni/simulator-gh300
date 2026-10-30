@@ -331,7 +331,7 @@ test('storage: migração v1 → v2 e dados corrompidos', () => {
 
 // ---------- bancos reais ----------
 
-const real = GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id));
+const real = GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id) && !b.dynamic);
 const FORMAT = GHX.CERTS['GH-300'].format;
 
 test('12 simulados de 60 questões: 4 por nível, 720 no total', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
@@ -499,7 +499,7 @@ function attemptOn(bankId, p, at, opts = {}) {
   S.finish(att, at + MIN, 'submitted');
   return att;
 }
-const realBanks = () => GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id));
+const realBanks = () => GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id) && !b.dynamic);
 const ids = () => realBanks().map((b) => b.id);
 const analyze = (list) => GHX.Progress.analyze(list, realBanks());
 
@@ -605,4 +605,78 @@ test('modo estudo: só as respondidas contam; domínio sem respostas fica "Não 
   const t = an.topics.find((x) => x.evidence === 'limited');
   assert.ok(t && t.status === null, 'evidência limitada não recebe status');
   assert.ok(an.topics.some((x) => x.evidence === 'none' && x.pct === null));
+});
+
+// ---------- simulado aleatório e zerar progresso ----------
+
+const mixes = () => GHX.listBanks().filter((b) => b.dynamic);
+
+test('simulado aleatório: um por nível, 60 questões do próprio nível, distribuição e formato da GH-300', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  assert.deepEqual(mixes().map((b) => b.level), ['Iniciante', 'Intermediário', 'Avançado']);
+  for (const b of mixes()) {
+    for (let run = 0; run < 3; run++) {
+      GHX.Mixer.refresh(b, {}, S.seeded(run + 10));
+      assert.deepEqual(GHX.validateBank(b), [], b.id);
+      assert.equal(b.qs.length, 60);
+      assert.equal(new Set(b.qs.map((it) => it.id)).size, 60, 'sem questões repetidas na mesma execução');
+      const dist = {};
+      for (const it of b.qs) {
+        assert.equal(GHX.getBank(it.__bank).level, b.level, 'questão de outro nível: ' + it.id);
+        assert.equal(GHX.getItem(it.id), it, 'é a mesma questão do banco de origem');
+        dist[it.d] = (dist[it.d] || 0) + 1;
+      }
+      assert.deepEqual(dist, { 1: 10, 2: 17, 3: 8, 4: 8, 5: 8, 6: 9 });
+      const inPool = new Set(GHX.Mixer.pool(b.level).map((it) => GHX.subObjectivesOf(it).ids[0]));
+      const inRun = new Set(b.qs.map((it) => GHX.subObjectivesOf(it).ids[0]));
+      assert.equal(inRun.size, inPool.size, 'todos os subobjetivos do nível aparecem em cada execução');
+    }
+    assert.ok(GHX.bankText(b, 'en').title.startsWith('Randomized Practice Exam'));
+  }
+});
+
+test('simulado aleatório: cada execução prioriza questões ainda não sorteadas', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const b = mixes()[1];
+  const attempts = [];
+  const seen = new Set();
+  for (let run = 0; run < 3; run++) {
+    GHX.Mixer.refresh(b, GHX.Mixer.usage(b.id, attempts), S.seeded(run + 1));
+    const att = S.create(b, { now: run, rng: S.seeded(run) });
+    const fresh = att.sections[0].items.filter((id) => !seen.has(id)).length;
+    if (run === 0) assert.equal(fresh, 60);
+    else assert.ok(fresh >= 40, 'execução ' + (run + 1) + ' com poucas questões novas: ' + fresh);
+    att.sections[0].items.forEach((id) => seen.add(id));
+    attempts.push(att);
+  }
+  const usage = GHX.Mixer.usage(b.id, attempts);
+  assert.equal(Object.values(usage).reduce((a, n) => a + n, 0), 180);
+});
+
+test('painel ignora os simulados aleatórios nas contagens do banco de questões', { skip: real.length === 0 && 'bancos ainda não criados' }, () => {
+  const all = GHX.listBanks().filter((b) => !['fx', 'reg'].includes(b.id));
+  const s = GHX.Progress.summary([], all);
+  assert.equal(s.itemsTotal, 720);
+  assert.equal(s.banksTotal, 15);
+  const an = GHX.Progress.analyze([], all);
+  assert.deepEqual(an.domains.map((x) => Math.round(x.weight * 60)), [10, 17, 8, 8, 8, 9]);
+  assert.equal(an.topics.reduce((n, t) => n + t.available, 0), GHX.Progress.analyze([], realBanks()).topics.reduce((n, t) => n + t.available, 0));
+});
+
+test('storage: zerar progresso apaga tentativas e mantém preferências', () => {
+  const st = GHX.Storage.open(GHX.Storage.memoryBackend());
+  st.pref('lang', 'en');
+  st.pref('scheme', 'dark');
+  st.pref('mixUsage', { 'gh300-mix-ini': { runs: 1, ids: { x: 1 } } });
+  const a = S.create(bank, { now: 0, rng: S.seeded(1) });
+  st.put(a);
+  const f = S.create(bank, { now: 1, rng: S.seeded(2), id: 'fin' });
+  S.start(f, 1); S.finish(f, 2, 'submitted'); st.put(f);
+  st.pref('current', a.id);
+  st.resetProgress();
+  assert.deepEqual(st.history(), []);
+  assert.equal(st.active(bank.id), null);
+  assert.equal(st.pref('lang'), 'en');
+  assert.equal(st.pref('scheme'), 'dark');
+  assert.equal(st.pref('current'), undefined);
+  assert.equal(st.pref('mixUsage'), undefined, 'o registro do sorteio também é zerado');
+  assert.deepEqual(GHX.Storage.open(st.backend).data.attempts, {}, 'gravado no armazenamento');
 });

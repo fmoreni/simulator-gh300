@@ -608,6 +608,9 @@ pre.code {
   .hbars.obj .hb-s { grid-column: 1 / -1; }
 }
 
+.btn.danger { border-color: var(--bad); color: var(--bad); background: transparent; }
+.btn.danger:hover { background: var(--bad-soft); }
+
 </style>
 <div id="app" aria-live="off"><p style="padding:16px">Carregando…</p></div>
 <noscript><p style="padding:16px">Este simulador precisa de JavaScript.</p></noscript>
@@ -1879,6 +1882,16 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
 
   Store.prototype.clear = function () { this.data = empty(); this.flush(); };
 
+  // Apaga tentativas finalizadas e em andamento; mantém as preferências (idioma, tema etc.).
+  Store.prototype.resetProgress = function () {
+    var prefs = this.data.prefs || {};
+    delete prefs.current;
+    delete prefs.mixUsage;
+    this.data = empty();
+    this.data.prefs = prefs;
+    return this.flush();
+  };
+
   GHX.Storage = {
     KEY: KEY,
     VERSION: VERSION,
@@ -1942,7 +1955,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       var weakest = rated.length ? rated.slice().sort(function (x, y) { return x.pct - y.pct; })[0] : null;
       var next = perBank.filter(function (p) { return !p.attempts; })[0] ||
         perBank.slice().sort(function (x, y) { return x.best - y.best; })[0] || null;
-      var itemsTotal = banks.reduce(function (n, b) { return n + GHX.bankItems(b).length; }, 0);
+      var fixed = banks.filter(function (b) { return !b.dynamic; });
+      var itemsTotal = fixed.reduce(function (n, b) { return n + GHX.bankItems(b).length; }, 0);
 
       return {
         attempts: done.length,
@@ -2362,8 +2376,10 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     return { groups: out, next: next && next.n ? next : null };
   }
 
-  GHX.Progress.analyze = function (done, banks, cert) {
+  GHX.Progress.analyze = function (done, allBanks, cert) {
     cert = cert || GHX.CERTS['GH-300'];
+    // Simulados aleatórios reutilizam questões dos fixos: não entram nas contagens do banco.
+    var banks = allBanks.filter(function (b) { return !b.dynamic; });
     var w = weights(banks, cert);
     var avail = availability(banks);
     var s = snapshot(done, banks, cert, w, avail);
@@ -22058,6 +22074,118 @@ GHX.addTranslations('en', {
 });
 
 ;
+/* ---- src/banks/mix.js ---- */
+// Simulado aleatório de cada nível (o 5º do nível). As 60 questões são sorteadas a cada
+// execução entre as questões dos simulados fixos do mesmo nível, sem criar questões novas:
+// - mantém a distribuição por domínio dos simulados (10/17/8/8/8/9);
+// - dentro de cada domínio, inclui todos os subobjetivos oficiais e completa a cota com
+//   as questões menos usadas, priorizando as que ainda não apareceram neste simulado;
+// As questões continuam pertencendo aos bancos de origem (mesmos ids e gabaritos).
+var GHX = globalThis.GHX || (globalThis.GHX = {});
+
+(function () {
+  var MIX = [
+    { id: 'gh300-mix-ini', level: 'Iniciante', en: 'Beginner' },
+    { id: 'gh300-mix-int', level: 'Intermediário', en: 'Intermediate' },
+    { id: 'gh300-mix-adv', level: 'Avançado', en: 'Advanced' },
+  ];
+  var QUOTA = { 1: 10, 2: 17, 3: 8, 4: 8, 5: 8, 6: 9 };
+
+  function pool(level) {
+    var out = [];
+    GHX.listBanks().forEach(function (b) {
+      if (!b.dynamic && b.level === level && b.cert === 'GH-300') out = out.concat(GHX.bankItems(b));
+    });
+    return out;
+  }
+
+  function shuffle(list, rng) {
+    var a = list.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+
+  // usage: { idDaQuestão: vezes que já apareceu neste simulado aleatório }.
+  function compose(bank, usage, rng) {
+    usage = usage || {};
+    rng = rng || Math.random;
+    var items = pool(bank.level), picked = [];
+    Object.keys(QUOTA).forEach(function (d) {
+      var groups = {};
+      items.filter(function (it) { return String(it.d) === d; }).forEach(function (it) {
+        var sub = GHX.subObjectivesOf ? GHX.subObjectivesOf(it).ids[0] : 'all';
+        (groups[sub] = groups[sub] || []).push(it);
+      });
+      // Em cada subobjetivo, primeiro as questões menos usadas; empate resolvido no sorteio.
+      var gs = shuffle(Object.keys(groups), rng).map(function (k) {
+        var list = shuffle(groups[k], rng).sort(function (a, b) { return (usage[a.id] || 0) - (usage[b.id] || 0); });
+        return { list: list, taken: 0 };
+      });
+      for (var n = 0; n < QUOTA[d]; n++) {
+        var best = null;
+        gs.forEach(function (g) {
+          if (g.taken >= g.list.length) return;
+          var u = usage[g.list[g.taken].id] || 0;
+          // 1º: cada subobjetivo do domínio aparece uma vez; depois, as questões menos usadas.
+          var k = [g.taken ? 1 : 0, u, g.taken];
+          if (!best || k[0] < best.k[0] || (k[0] === best.k[0] && (k[1] < best.k[1] || (k[1] === best.k[1] && k[2] < best.k[2])))) best = { g: g, k: k };
+        });
+        if (!best) break;
+        picked.push(best.g.list[best.g.taken++]);
+      }
+    });
+    return shuffle(picked, rng);
+  }
+
+  GHX.Mixer = {
+    QUOTA: QUOTA,
+    pool: pool,
+    compose: compose,
+    // Quantas vezes cada questão já apareceu em tentativas deste simulado.
+    usage: function (bankId, attempts) {
+      var u = {};
+      (attempts || []).forEach(function (a) {
+        if (a && a.bankId === bankId) (a.sections || []).forEach(function (s) { s.items.forEach(function (id) { u[id] = (u[id] || 0) + 1; }); });
+      });
+      return u;
+    },
+    // Monta uma nova seleção no banco antes de criar a tentativa (usage: id → vezes sorteada).
+    refresh: function (bank, usage, rng) {
+      bank.qs = compose(bank, usage, rng);
+      return bank;
+    },
+  };
+
+  MIX.forEach(function (m, i) {
+    var b = {
+      id: m.id,
+      title: 'Simulado aleatório — ' + m.level,
+      subtitle: m.level + ' · 60 questões sorteadas a cada execução',
+      org: '', minutes: 100, lang: 'pt-BR', track: 'full', level: m.level, cert: 'GH-300',
+      dynamic: true,
+      blurb: 'Sorteia 60 questões dos simulados de nível ' + m.level + ' a cada execução, com a distribuição oficial por domínio e passando por todos os subobjetivos de cada domínio. Prioriza questões que ainda não apareceram aqui.',
+      cases: [], ps: [], qs: [],
+    };
+    GHX.BANKS[b.id] = b;
+    GHX.BANK_ORDER.push(b.id);
+    // Seleção inicial, só para o cartão da tela inicial; cada execução sorteia de novo.
+    b.qs = compose(b, {}, GHX.Session ? GHX.Session.seeded(i + 1) : Math.random);
+  });
+
+  if (GHX.addBankTranslations) {
+    var tr = {};
+    MIX.forEach(function (m) {
+      tr[m.id] = {
+        title: 'Randomized Practice Exam — ' + m.en,
+        subtitle: m.en + ' · 60 questions drawn on every run',
+        blurb: 'Draws 60 questions from the ' + m.en.toLowerCase() + ' practice exams on every run, keeping the official distribution by domain and covering every sub-objective of each domain. Questions that have not appeared here yet come first.',
+      };
+    });
+    GHX.addBankTranslations('en', tr);
+  }
+})();
+
+;
 /* ---- src/ui/dnd.js ---- */
 // Arrastar e soltar com Pointer Events (mouse, caneta e toque) e alternativa por teclado.
 // Elementos: [data-tile] arrastável (opcional data-from = alvo de origem), [data-zone] alvo.
@@ -22905,7 +23033,8 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     render: function (s) {
       var an = s.analysis;
       var head = '<header class="home-h"><div><h1>Painel de progresso</h1><p class="sub">Avaliação progressiva da sua preparação para a GH-300: desempenho, cobertura dos objetivos oficiais e confiança nas evidências.</p></div>' +
-        '<div class="home-tools"><button class="btn" data-act="home" data-k="dash-home">Voltar ao início</button></div></header>';
+        '<div class="home-tools"><button class="btn" data-act="home" data-k="dash-home">Voltar ao início</button>' +
+        '<button class="btn danger" data-act="reset-progress" data-k="dash-reset">Zerar progresso</button></div></header>';
       if (!s.attempts) {
         return '<div class="home dash">' + head + '<section class="card empty-dash"><h2>Nenhum simulado concluído ainda</h2>' +
           '<p>Os indicadores aparecem a partir do primeiro simulado concluído, no Modo exame ou no Modo estudo, e ficam mais confiáveis a cada simulado diferente. Não é preciso fazer todos os 12.</p>' +
@@ -23025,7 +23154,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     document.documentElement.lang = GHX.locale();
     hideTip();
     switch (ui.screen) {
-      case 'dash': html = GHX.Dashboard.render(GHX.Progress.summary(store.history(), GHX.listBanks())); break;
+      case 'dash': html = GHX.Dashboard.render(GHX.Progress.summary(store.history(), GHX.listBanks())) + (ui.modal ? renderModal() : ''); break;
       case 'pre': html = renderPre(); break;
       case 'exam': html = renderExam(); break;
       case 'report': html = renderReport(); break;
@@ -23083,12 +23212,23 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       '<div><dt>Tempo</dt><dd>' + b.minutes + ' min</dd></div>' +
       '<div><dt>Formato</dt><dd>' + esc(sectionList(b)) + '</dd></div>' +
       '<div class="wide"><dt>Tipos de item</dt><dd>' + esc(typeList(b)) + '</dd></div>' +
+      (b.dynamic ? mixFacts(b) : '') +
       '</dl>' +
       '<div class="actions">' + actions.join('') + '</div>' +
       (hist.length ? '<details class="hist"><summary>Histórico (' + hist.length + ')</summary><ul>' + hist.slice(0, 10).map(function (a) {
         return '<li><button class="link" data-act="report" data-id="' + a.id + '">' + fmtDate(a.finishedAt) + ' · ' + (a.mode === 'exam' ? 'exame' : 'estudo') + (a.lang === 'en' ? ' · EN' : '') + ' · <strong>' + a.result.pct + '%</strong></button></li>';
       }).join('') + '</ul></details>' : '') +
       '</article>';
+  }
+
+  // Execuções do simulado aleatório e questões do nível que ainda não foram sorteadas nele.
+  function mixUsage(bankId) { return (store.pref('mixUsage') || {})[bankId] || { runs: 0, ids: {} }; }
+
+  function mixFacts(b) {
+    var u = mixUsage(b.id), runs = u.runs;
+    var used = Object.keys(u.ids).length;
+    var pool = GHX.Mixer.pool(b.level).length;
+    return '<div class="wide"><dt>Sorteio</dt><dd>' + runs + ' execuç' + (runs === 1 ? 'ão' : 'ões') + ' · ' + (pool - used) + ' de ' + pool + ' questões do nível ainda não sorteadas aqui</dd></div>';
   }
 
   function renderHome() {
@@ -23496,6 +23636,9 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
   function startAttempt(bankId, mode) {
     var b = GHX.getBank(bankId);
     store.discard(bankId);
+    // Simulado aleatório: nova seleção a cada execução, priorizando questões ainda não sorteadas.
+    // O registro do sorteio fica nas preferências, para valer mesmo se a tentativa for descartada.
+    if (b.dynamic) GHX.Mixer.refresh(b, mixUsage(b.id).ids);
     var att = S.create(b, { mode: mode, now: now(), lang: store.pref('lang'), extraTime: mode === 'exam' && !!store.pref('extraTime') });
     att.notes = {};
     ui.att = att;
@@ -23506,6 +23649,14 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     else { S.start(att, now()); ui.screen = 'exam'; }
     store.put(att);
     store.pref('current', att.id);
+    if (b.dynamic) {
+      var all = store.pref('mixUsage') || {};
+      var u = all[b.id] || { runs: 0, ids: {} };
+      u.runs++;
+      att.sections.forEach(function (sec) { sec.items.forEach(function (id) { u.ids[id] = (u.ids[id] || 0) + 1; }); });
+      all[b.id] = u;
+      store.pref('mixUsage', all);
+    }
     render();
   }
 
@@ -23605,6 +23756,15 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
           return;
         }
         if (m.then === 'discard') { store.discard(m.bank); render(); return; }
+        if (m.then === 'reset') {
+          store.resetProgress();
+          ui.att = null;
+          ui.screen = 'home';
+          ui.notice = 'Progresso zerado: o histórico, as tentativas em andamento e o painel foram apagados. As preferências foram mantidas.';
+          render();
+          window.scrollTo(0, 0);
+          return;
+        }
     }
     render();
   }
@@ -23648,6 +23808,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
       case 'discard': ui.modal = { kind: 'confirm', title: 'Descartar tentativa', text: 'Descartar a tentativa em andamento? Esta ação não pode ser desfeita.', then: 'discard', bank: el.getAttribute('data-bank') }; render(); break;
       case 'report': showReport(el.getAttribute('data-id')); break;
       case 'home': ui.screen = 'home'; ui.reportId = null; render(); window.scrollTo(0, 0); break;
+      case 'reset-progress': ui.modal = { kind: 'confirm', title: 'Zerar progresso', text: 'Apagar <strong>todo o histórico</strong> de simulados, as tentativas em andamento e os indicadores do painel? Idioma, tema e tempo extra são mantidos. <strong>Esta ação não pode ser desfeita.</strong>', then: 'reset' }; render(); break;
       case 'dash': ui.screen = 'dash'; ui.reportId = null; ui.modal = null; render(); window.scrollTo(0, 0); break;
       case 'pre-accept': ui.pre = 1; render(); break;
       case 'pre-decline': ui.modal = null; store.discard(a.bankId); ui.att = null; ui.screen = 'home'; store.pref('current', null); render(); break;

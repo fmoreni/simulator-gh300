@@ -1,6 +1,6 @@
 # Simulador GH-300 — GitHub Copilot
 
-Simulador de provas para a certificação **GH-300: GitHub Copilot**. São **12 simulados com 60 questões cada (720 no total)**, quatro por nível de dificuldade, que reproduzem o fluxo da prova aplicada pela Pearson VUE. A moldura segue o [sandbox oficial das provas do GitHub](https://GHCertDemo.starttest.com).
+Simulador de provas para a certificação **GH-300: GitHub Copilot**. São **12 simulados fixos com 60 questões cada (720 no total)**, quatro por nível de dificuldade, mais **um simulado aleatório por nível**, sorteado a cada execução, que reproduzem o fluxo da prova aplicada pela Pearson VUE. A moldura segue o [sandbox oficial das provas do GitHub](https://GHCertDemo.starttest.com).
 
 > Simulador independente, sem vínculo com GitHub, Microsoft ou Pearson VUE. Todas as questões são originais e escritas a partir da documentação oficial; nenhuma vem de dumps ou de provas reais. O resultado aqui **não** prevê a nota oficial.
 
@@ -61,6 +61,10 @@ A prova oficial é aplicada em inglês. Para treinar nessas condições, escolha
 - As telas da prova (pré-prova, instruções, avisos, revisão, pausa, ajuda e comentários) e o relatório também ficam em inglês.
 - As questões, o gabarito, a ordem e a correção são os mesmos da versão em português. Assim dá para fazer o mesmo simulado nos dois idiomas e comparar o resultado.
 - O relatório e o painel indicam o idioma de cada tentativa.
+
+### Zerar progresso
+
+O botão **Zerar progresso**, no painel, apaga (depois de confirmar) todo o histórico, as tentativas em andamento, os indicadores do painel e o registro de sorteio dos simulados aleatórios. Idioma, tema e tempo extra são mantidos. A ação não pode ser desfeita.
 
 ### Painel de progresso e prontidão
 
@@ -125,7 +129,7 @@ O simulador mostra o **aproveitamento em %**, com crédito parcial nos itens de 
 
 ---
 
-## Os 12 simulados
+## Os simulados
 
 | Simulado | Nível | Foco |
 | --- | --- | --- |
@@ -142,7 +146,19 @@ O simulador mostra o **aproveitamento em %**, com crédito parcial nos itens de 
 | 11 | Intermediário | CLI e REST API em cenários, políticas, code review, IA responsável no dia a dia, fluxo de dados, prompts com restrições, testes, segurança e diagnóstico de exclusões |
 | 12 | Avançado | Governança de agentes, hooks e MCP, licenças e métricas em escala, fluxo de dados e controles, engenharia de contexto, estratégia de testes e defesa em profundidade |
 
-Cada simulado tem **60 questões em 100 minutos**, distribuídas pelos pesos oficiais dos domínios (*Skills measured as of August 7, 2026*):
+### Simulado aleatório (o 5º de cada nível)
+
+Cada nível tem um **Simulado aleatório** que sorteia 60 questões novas a cada execução, entre as 240 questões dos quatro simulados fixos do mesmo nível:
+
+- mantém a distribuição por domínio dos simulados fixos (10/17/8/8/8/9);
+- em cada execução, inclui todos os subobjetivos oficiais da GH-300 presentes no nível, para que os assuntos cobrados continuem os mesmos;
+- completa a cota de cada domínio com as questões que ainda não foram sorteadas nesse simulado; repetições só acontecem quando um subobjetivo tem poucas questões no nível ou quando as questões do nível acabam;
+- o cartão mostra quantas execuções você fez e quantas questões do nível ainda não foram sorteadas;
+- funciona nos modos exame e estudo e nos dois idiomas. As questões, gabaritos e explicações são os mesmos dos simulados de origem.
+
+### Simulados fixos
+
+Cada simulado fixo tem **60 questões em 100 minutos**, distribuídas pelos pesos oficiais dos domínios (*Skills measured as of August 7, 2026*):
 
 | # | Domínio | Peso oficial | Por simulado | Total (720) |
 | --- | --- | --- | --- | --- |
@@ -213,6 +229,7 @@ src/
     s07.js            Simulado 07      s08.js          Simulado 08      s09.js   Simulado 09
     s10.js            Simulado 10      s11.js          Simulado 11      s12.js   Simulado 12
     extensions.js     itens extras e correções sem editar os bancos
+    mix.js            simulado aleatório de cada nível (sorteio por domínio e subobjetivo)
     en/               versão em inglês de cada simulado (mesmos ids; só os textos)
   ui/
     dnd.js            arrastar e soltar com Pointer Events, mais alternativa por teclado
