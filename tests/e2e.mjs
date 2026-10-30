@@ -547,10 +547,10 @@ async function run() {
 
   // Painel de progresso
   await click('[data-act="dash"]');
-  await waitFor(`document.querySelector('.dash')`);
-  assert.match(await text('.dash h1'), /Painel de progresso/);
-  assert.match(await text('.kpis'), /Simulados concluídos\s*2\s*de 15/);
-  assert.match(await text('.kpis'), /1 em português · 1 em inglês/);
+  await waitFor(`document.querySelector('.progress-dashboard')`);
+  assert.match(await text('.progress-dashboard h1'), /Painel de Progresso/);
+  assert.match(await text('.pd-metrics'), /Simulados concluídos\s*2\s*de 15/);
+  assert.match(await text('.pd-metrics'), /1 em português · 1 em inglês/);
   const an = await evaluate(`(() => { const a = GHX.Progress.summary(GHX.App.store.history(), GHX.listBanks()).analysis; return { n: a.overall.n, cov: a.coverage, conf: a.confidence, state: a.state.key, idx: a.index, nb: a.nBanks }; })()`);
   assert.equal(an.n, 120, 'duas tentativas de exame em simulados diferentes');
   assert.equal(an.nb, 2);
@@ -558,22 +558,38 @@ async function run() {
   assert.equal(await evaluate(`document.querySelector('[data-state]').getAttribute('data-state')`), an.state);
   assert.equal(await evaluate(`document.querySelector('[data-coverage]').getAttribute('data-coverage')`), String(an.cov));
   assert.equal(await evaluate(`document.querySelector('[data-confidence]').getAttribute('data-confidence')`), String(an.conf));
-  assert.match(await text('.hero2'), /Critérios para "Pronto para agendar"/);
-  assert.match(await text('.missing'), /O que falta para eu estar preparado\?/);
-  assert.match(await text('.missing'), /cobertura oficial de/);
-  assert.equal(await evaluate(`document.querySelectorAll('.hbars.obj li').length`), 14);
-  assert.ok(await evaluate(`document.querySelectorAll('.matrix tbody tr').length`) >= 28);
-  assert.match(await text('.matrix'), /Não avaliado/);
-  assert.equal(await evaluate(`document.querySelectorAll('.chart').length`), 2);
-  assert.equal(await evaluate(`document.querySelectorAll('.chart')[0].querySelectorAll('.ch-pt').length`), 2);
-  assert.equal(await evaluate(`document.querySelectorAll('.hist-table tbody tr').length`), 2);
-  assert.equal(await evaluate(`document.querySelectorAll('.hbars.rw li').length`), 7);
-  await evaluate(`document.querySelector('.ch-pt').dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))`);
+  assert.match(await text('.pd-ready'), /Critérios para "Pronto para agendar"/);
+  assert.match(await text('.pd-missing'), /O que falta para eu estar preparado\?/);
+  assert.match(await text('.pd-missing'), /cobertura oficial de/);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-obj').length`), 14);
+  assert.ok(await evaluate(`document.querySelectorAll('.pd-matrix tbody tr').length`) >= 28);
+  assert.match(await text('.pd-matrix'), /Não avaliado/);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-chart').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-chart')[0].querySelectorAll('.pd-pt').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-history tbody tr').length`), 2);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-rw-list li').length`), 6);
+  await evaluate(`document.querySelector('.pd-pt').dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))`);
   assert.match(await evaluate(`(document.querySelector('.ch-tip:not([hidden])') || {}).textContent || ''`), /Após Simulado 04.*desempenho/);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-metric').length`), 8);
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-metric .pd-ic').length`), 8, 'cada cartão tem ícone SVG');
+  assert.equal(await evaluate(`document.querySelectorAll('.pd-topic').length`), await evaluate(`document.querySelectorAll('.pd-matrix tbody tr').length`));
+  assert.ok(await evaluate(`!!document.querySelector('.pd-ready .pd-donut[role="img"]')`), 'prontidão em gráfico radial');
+  assert.ok(await evaluate(`document.querySelectorAll('.pd-plan').length === 3`));
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: await evaluate('document.documentElement.scrollHeight'), deviceScaleFactor: 1, mobile: false });
   await shot('14-dashboard');
+  for (const sch of ['light', 'contrast']) {
+    await evaluate(`document.documentElement.setAttribute('data-scheme', '${sch}')`);
+    await shot('14-dashboard-' + sch);
+  }
+  await evaluate(`document.documentElement.setAttribute('data-scheme', GHX.App.store.pref('scheme') || 'auto')`);
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  await sleep(200);
+  const dashOverflow = await evaluate(`document.documentElement.scrollWidth - window.innerWidth`);
+  assert.ok(dashOverflow <= 0, 'rolagem horizontal no painel no celular: ' + dashOverflow);
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: await evaluate('document.documentElement.scrollHeight'), deviceScaleFactor: 1, mobile: true });
+  await shot('14-dashboard-mobile');
   await cdp.send('Emulation.clearDeviceMetricsOverride');
-  await click('.hist-table [data-act="report"]');
+  await click('.pd-history [data-act="report"]');
   await waitFor(`document.querySelector('.report')`);
   await click('[data-act="home"]');
   await waitFor(`document.querySelector('.home')`);
@@ -619,7 +635,7 @@ async function run() {
 
   // Zerar progresso
   await click('[data-act="dash"]');
-  await waitFor(`document.querySelector('.dash')`);
+  await waitFor(`document.querySelector('.progress-dashboard')`);
   await click('[data-act="reset-progress"]');
   await waitFor(`/Zerar progresso/.test((document.querySelector('.modal') || {}).textContent || '')`);
   await confirmYes();

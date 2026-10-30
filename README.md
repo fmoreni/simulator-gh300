@@ -68,6 +68,8 @@ O botão **Zerar progresso**, no painel, apaga (depois de confirmar) todo o hist
 
 ### Painel de progresso e prontidão
 
+O painel tem visual próprio (cabeçalho em gradiente, prontidão em gráfico radial, cartões com ícones, gráficos de linha suaves, mapa de conhecimento por assunto e histórico com indicadores de evolução), com temas claro, escuro e alto contraste e layout para celular. Os estilos ficam isolados em `.progress-dashboard`, sem afetar as telas da prova.
+
 Funciona desde o primeiro simulado concluído, usa todos os simulados (de qualquer nível) e fica mais confiável a cada simulado diferente. Não é preciso fazer os 12. Três indicadores independentes:
 
 - **Desempenho:** quanto você acertou nas questões distintas.

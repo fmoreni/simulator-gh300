@@ -827,7 +827,7 @@ var GHX = globalThis.GHX || (globalThis.GHX = {});
     tipEl.textContent = el.getAttribute('data-tip');
     tipEl.hidden = false;
     var r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
-    var dot = el.querySelector && el.querySelector('.ch-dot');
+    var dot = el.querySelector && el.querySelector('.pd-dot');
     var ref = dot ? dot.getBoundingClientRect() : r;
     var left = Math.min(Math.max(8, ref.left + ref.width / 2 - w / 2), document.documentElement.clientWidth - w - 8);
     var top = ref.top - h - 10;
